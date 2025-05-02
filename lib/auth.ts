@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { MOCK_USER_ID, MOCK_USER_NAME } from "./user-context"
+import { compare } from "bcrypt"
 
 // Mock da sessão para desenvolvimento sem autenticação
 export const mockSession = {
@@ -20,7 +21,7 @@ export async function getServerSession() {
   return mockSession
 }
 
-// Mock das opções de autenticação (não usado, mas mantido para compatibilidade)
+// Opções de autenticação
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
@@ -43,8 +44,6 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // Implementar lógica de autenticação com credenciais
-        // Exemplo simplificado
         if (!credentials?.email || !credentials?.password) {
           return null
         }
@@ -55,8 +54,22 @@ export const authOptions: NextAuthOptions = {
           },
         })
 
-        // Verificar senha e retornar usuário
-        return user
+        if (!user || !user.password) {
+          return null
+        }
+
+        const isPasswordValid = await compare(credentials.password, user.password)
+
+        if (!isPasswordValid) {
+          return null
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        }
       },
     }),
   ],
