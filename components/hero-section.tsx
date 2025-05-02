@@ -61,7 +61,7 @@ export function HeroSection() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="border-t border-white/20 pt-12">
                 <h3 className="text-2xl font-serif mb-4 underline">
-                  Criando agentes seguros que beneficiam a humanidade
+                  Agentes humanizados que vendem de verdade.
                 </h3>
                 <Link href="/about" className="text-sm text-white underline hover:no-underline">
                   Saiba mais sobre nós

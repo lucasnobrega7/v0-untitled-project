@@ -108,10 +108,10 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               <Search className="h-4 w-4" />
             </button>
             <Link href="/login" className="text-sm hover:opacity-70 transition-opacity">
-              Log in
+              Entrar
             </Link>
             <Link href="/signup" className="text-sm bg-white text-black px-3 py-1 hover:bg-white/90 transition-colors">
-              Sign up
+              Criar conta
             </Link>
           </div>
         </div>
@@ -186,9 +186,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
           <div className="border-t border-white/10 pt-10 flex flex-col md:flex-row justify-between">
             <div>
-              <div className="text-sm mb-2">Agentes de Conversão © 2023</div>
+              <div className="text-sm mb-2">Agentes de Conversão © 2025</div>
               <Link href="/terms" className="text-sm hover:underline">
-                Terms & policies
+                Termos & Políticas
               </Link>
             </div>
             <div className="flex space-x-6 mt-6 md:mt-0">
@@ -209,7 +209,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex justify-center mt-10">
             <Link href="#top" className="text-sm hover:underline flex items-center">
-              Back to top <ArrowUp className="ml-1 h-4 w-4" />
+              Voltar ao topo <ArrowUp className="ml-1 h-4 w-4" />
             </Link>
           </div>
 
