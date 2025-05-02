@@ -96,7 +96,7 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
           accept=".txt"
           onChange={handleFileChange}
           disabled={isUploading}
-          className="border-white/10 bg-white/5 text-white"
+          className="border-white/20 bg-white/5 text-white"
         />
         <p className="text-xs text-white/50">
           Atualmente suportamos apenas arquivos .txt. Suporte para PDF e DOCX em breve.
@@ -114,7 +114,7 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
           placeholder="Cole ou digite o texto aqui..."
           rows={10}
           disabled={isUploading}
-          className="resize-none border-white/10 bg-white/5 text-white placeholder:text-white/30"
+          className="resize-none border-white/20 bg-white/5 text-white placeholder:text-white/30"
         />
       </div>
 
@@ -122,9 +122,7 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
         <Alert
           variant={result.success ? "default" : "destructive"}
           className={
-            result.success
-              ? "bg-blue-500/20 text-white border-blue-500/50"
-              : "bg-red-500/20 text-white border-red-500/50"
+            result.success ? "bg-white/10 text-white border-white/20" : "bg-red-500/20 text-white border-red-500/50"
           }
         >
           {result.success ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -136,7 +134,7 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
       <Button
         type="submit"
         disabled={isUploading || !text.trim()}
-        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0"
+        className="w-full bg-white text-black hover:bg-white/90"
       >
         {isUploading ? (
           <>

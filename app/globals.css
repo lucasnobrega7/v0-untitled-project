@@ -4,35 +4,35 @@
 
 @layer base {
   :root {
-    --background: 222 47% 5%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 217 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 217 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217 32.6% 17.5%;
-    --input: 217 32.6% 17.5%;
-    --ring: 224 76% 48%;
+    --border: 0 0% 20%;
+    --input: 0 0% 10%;
+    --ring: 0 0% 100%;
 
-    --radius: 0.5rem;
+    --radius: 0;
   }
 }
 
@@ -43,9 +43,6 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "ss01" on, "ss02" on, "ss03" on, "ss04" on, "ss05" on;
-    background: radial-gradient(ellipse at top, hsl(230, 80%, 15%), hsl(222, 47%, 5%)),
-      radial-gradient(ellipse at bottom, hsl(222, 47%, 5%), hsl(230, 60%, 10%));
-    background-attachment: fixed;
   }
 
   h1,
@@ -54,11 +51,11 @@
   h4,
   h5,
   h6 {
-    @apply font-medium tracking-tight;
+    @apply font-serif tracking-tight;
   }
 
   h1 {
-    @apply text-4xl sm:text-5xl md:text-6xl;
+    @apply text-5xl sm:text-6xl md:text-7xl;
   }
 
   h2 {
@@ -69,32 +66,27 @@
     @apply text-2xl sm:text-3xl;
   }
 
-  .flair-gradient-text {
-    @apply bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent;
+  .openai-button {
+    @apply border border-white hover:bg-white hover:text-black transition-colors duration-200 py-2 px-4;
   }
 
-  .flair-card {
-    @apply bg-card/80 backdrop-blur-sm border border-white/5 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200;
+  .openai-button-filled {
+    @apply bg-white text-black hover:bg-opacity-90 transition-colors duration-200 py-2 px-4;
   }
 
-  .flair-button {
-    @apply bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200;
+  .openai-link {
+    @apply underline hover:no-underline;
   }
 
-  .flair-button-outline {
-    @apply border border-white/10 hover:border-white/20 text-white/80 hover:text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 backdrop-blur-sm;
+  .openai-card {
+    @apply border-t border-white/20 pt-4;
   }
 
-  .flair-glow {
-    @apply relative;
+  .openai-gradient-fade {
+    background: linear-gradient(180deg, #000000 50%, #ffffff 50%);
   }
 
-  .flair-glow::before {
-    content: "";
-    @apply absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl opacity-0 blur transition duration-300 -z-10;
-  }
-
-  .flair-glow:hover::before {
-    @apply opacity-50;
+  .openai-section {
+    @apply border-t border-white/20 py-12;
   }
 }

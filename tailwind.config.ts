@@ -20,7 +20,8 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "var(--font-roboto)", "sans-serif"],
+        sans: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+        serif: ["Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -56,24 +57,6 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Flair theme colors
-        flair: {
-          blue: {
-            light: "#3B82F6",
-            DEFAULT: "#2563EB",
-            dark: "#1D4ED8",
-          },
-          indigo: {
-            light: "#6366F1",
-            DEFAULT: "#4F46E5",
-            dark: "#4338CA",
-          },
-          dark: {
-            light: "#1E293B",
-            DEFAULT: "#0F172A",
-            dark: "#020617",
-          },
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -89,26 +72,10 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "gradient-shift": {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
-        },
-        "glow-pulse": {
-          "0%, 100%": { opacity: "0.4" },
-          "50%": { opacity: "0.8" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "gradient-shift": "gradient-shift 10s ease infinite",
-        "glow-pulse": "glow-pulse 3s ease-in-out infinite",
-      },
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "flair-gradient": "linear-gradient(to right, #3B82F6, #4F46E5)",
-        "flair-dark-gradient":
-          "radial-gradient(ellipse at top, #1E293B, #0F172A), radial-gradient(ellipse at bottom, #0F172A, #020617)",
       },
     },
   },
