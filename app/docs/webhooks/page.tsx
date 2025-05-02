@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import DocsLayout from "@/components/layout/docs-layout"
 import WebhooksClientPage from "./WebhooksClientPage"
 
 export const metadata: Metadata = {
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function WebhooksPage() {
-  return (
-    <DocsLayout>
-      <WebhooksClientPage />
-    </DocsLayout>
-  )
+  return <WebhooksClientPage />
 }
