@@ -15,6 +15,7 @@ import {
   Users,
   Sparkles,
   MessageSquare,
+  Zap,
 } from "lucide-react"
 
 interface SidebarProps {
@@ -55,6 +56,7 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
         />
         <NavItem icon={<Sparkles className="h-4 w-4" />} label="AI Tools" href="/ai-tools" collapsed={collapsed} />
         <NavItem icon={<MessageSquare className="h-4 w-4" />} label="WhatsApp" href="/whatsapp" collapsed={collapsed} />
+        <NavItem icon={<Zap className="h-4 w-4" />} label="Portkey AI" href="/portkey" collapsed={collapsed} />
         <NavItem icon={<BarChart3 className="h-4 w-4" />} label="Analytics" href="#" collapsed={collapsed} />
         <NavItem icon={<Users className="h-4 w-4" />} label="Customers" href="#" collapsed={collapsed} />
         <NavItem icon={<Package className="h-4 w-4" />} label="Products" href="#" collapsed={collapsed} />
