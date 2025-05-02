@@ -1,28 +1,13 @@
 import type React from "react"
-import { Inter, Roboto } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
-import { AuthProvider } from "@/components/auth-provider"
 import "./globals.css"
+import { Inter } from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
 
-// Carregando Inter como fonte principal
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-})
-
-// Carregando Roboto como alternativa à Söhne
-const roboto = Roboto({
-  weight: ["400", "500", "700"],
-  subsets: ["latin"],
-  variable: "--font-roboto",
-  display: "swap",
-})
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Agentes de Conversão",
-  description: "Plataforma de agentes conversacionais para conversão de leads",
+  title: "Assistente IA com Base de Conhecimento",
+  description: "Demonstração de uso de variáveis de ambiente para criar um assistente de IA",
     generator: 'v0.dev'
 }
 
@@ -32,14 +17,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className={`${inter.variable} ${roboto.variable}`}>
-      <body className="font-sans antialiased">
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-            {children}
-            <Toaster />
-          </ThemeProvider>
-        </AuthProvider>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

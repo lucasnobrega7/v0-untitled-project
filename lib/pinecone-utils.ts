@@ -1,5 +1,6 @@
 import { Pinecone } from "@pinecone-database/pinecone"
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
+import { OpenAI } from "openai"
 
 // Configurações específicas para o índice existente
 const PINECONE_INDEX_NAME = "agentesdeconversao"
@@ -25,21 +26,51 @@ export async function getPineconeIndex() {
   return pinecone.index(PINECONE_INDEX_NAME)
 }
 
-// Criar embeddings usando o modelo llama-text-embed-v2 via API do Pinecone
+// Criar embeddings usando o modelo OpenAI
 export async function createEmbeddingsWithPinecone(texts: string[]) {
-  const pinecone = await getPineconeClient()
+  // Verificar se temos a API key da OpenAI
+  if (!process.env.OPENAI_API_KEY) {
+    // Fallback para a API de inferência do Pinecone se não tivermos a API key da OpenAI
+    const pinecone = await getPineconeClient()
+    try {
+      // Usar a API de inferência do Pinecone para criar embeddings
+      const embeddings = await pinecone.embeddings.embed({
+        model: "llama-text-embed-v2",
+        inputs: texts,
+      })
+      return embeddings
+    } catch (error) {
+      console.error("Erro ao criar embeddings com Pinecone:", error)
+      throw error
+    }
+  }
 
+  // Usar OpenAI para criar embeddings
   try {
-    // Usar a API de inferência do Pinecone para criar embeddings
-    const embeddings = await pinecone.embeddings.embed({
-      model: "llama-text-embed-v2",
-      inputs: texts,
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const response = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: texts,
     })
 
+    // Extrair embeddings da resposta
+    const embeddings = response.data.map((item) => item.embedding)
     return embeddings
-  } catch (error) {
-    console.error("Erro ao criar embeddings com Pinecone:", error)
-    throw error
+  } catch (error: any) {
+    console.error("Erro ao criar embeddings com OpenAI:", error)
+
+    // Fallback para a API de inferência do Pinecone em caso de erro
+    const pinecone = await getPineconeClient()
+    try {
+      const embeddings = await pinecone.embeddings.embed({
+        model: "llama-text-embed-v2",
+        inputs: texts,
+      })
+      return embeddings
+    } catch (pineconeError) {
+      console.error("Erro ao criar embeddings com Pinecone (fallback):", pineconeError)
+      throw error
+    }
   }
 }
 

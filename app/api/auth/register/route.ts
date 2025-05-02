@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
 import { hash } from "bcrypt"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(req: Request) {
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     })
 
     if (existingUser) {
-      return NextResponse.json({ message: "Este email já está em uso" }, { status: 400 })
+      return NextResponse.json({ message: "Este email já está em uso" }, { status: 409 })
     }
 
     // Hash da senha
@@ -32,10 +32,16 @@ export async function POST(req: Request) {
       },
     })
 
-    // Remover a senha do objeto de retorno
+    // Remover a senha do objeto de resposta
     const { password: _, ...userWithoutPassword } = user
 
-    return NextResponse.json({ message: "Usuário criado com sucesso", user: userWithoutPassword }, { status: 201 })
+    return NextResponse.json(
+      {
+        message: "Usuário criado com sucesso",
+        user: userWithoutPassword,
+      },
+      { status: 201 },
+    )
   } catch (error) {
     console.error("Erro ao registrar usuário:", error)
     return NextResponse.json({ message: "Erro ao criar usuário" }, { status: 500 })

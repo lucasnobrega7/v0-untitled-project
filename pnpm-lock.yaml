@@ -235,7 +235,7 @@ importers:
         version: 0.31.0
       drizzle-orm:
         specifier: latest
-        version: 0.43.1(06878869c94f93919174ed5b6d72e9b5)
+        version: 0.43.1(d284f3a5a12ea752bbd49653b6efb968)
       embla-carousel-react:
         specifier: 8.5.1
         version: 8.5.1(react@19.0.0)
@@ -256,13 +256,13 @@ importers:
         version: 1.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       knex:
         specifier: latest
-        version: 3.1.0(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg@8.15.6)(sqlite3@5.1.7)
+        version: 3.1.0(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg-native@3.4.5)(pg@8.15.6(pg-native@3.4.5))(sqlite3@5.1.7)
       kysely:
         specifier: latest
         version: 0.28.2
       langchain:
         specifier: latest
-        version: 0.3.24(5cbdbab13635c3416e07bff3f79bc247)
+        version: 0.3.24(695ffe49f9d76c8faecc855e63b035e8)
       lucide-react:
         specifier: ^0.454.0
         version: 0.454.0(react@19.0.0)
@@ -289,7 +289,10 @@ importers:
         version: 4.2.0
       pg:
         specifier: latest
-        version: 8.15.6
+        version: 8.15.6(pg-native@3.4.5)
+      pg-native:
+        specifier: latest
+        version: 3.4.5
       postgres:
         specifier: latest
         version: 3.4.5
@@ -312,8 +315,8 @@ importers:
         specifier: ^2.1.7
         version: 2.1.7(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       recharts:
-        specifier: 2.15.0
-        version: 2.15.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: latest
+        version: 2.15.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       sonner:
         specifier: ^1.7.1
         version: 1.7.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -331,7 +334,7 @@ importers:
         version: 1.0.7(tailwindcss@3.4.17)
       typeorm:
         specifier: latest
-        version: 0.3.22(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg@8.15.6)(reflect-metadata@0.2.2)(sql.js@1.13.0)(sqlite3@5.1.7)
+        version: 0.3.22(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg-native@3.4.5)(pg@8.15.6(pg-native@3.4.5))(reflect-metadata@0.2.2)(sql.js@1.13.0)(sqlite3@5.1.7)
       vaul:
         specifier: ^0.9.6
         version: 0.9.6(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -4733,6 +4736,9 @@ packages:
     resolution: {integrity: sha512-qsda+H8jTaUaN/x5vzW2rzc+8Rw4TAQ/4KjB46IwK5VH+IlVeeeje/EoZRpiXvIqjFgK84QffqPztGI3VBLG1A==}
     engines: {node: '>=6'}
 
+  libpq@1.8.14:
+    resolution: {integrity: sha512-/DDvQCiXP0KBMZ31U2mmURKaxoKt9kNqqgrSO2RuBKS+OJjw5b7uHi5jFoV8zPAUa2TNtq2XfcWL1OWDEyjwlg==}
+
   libsql@0.5.8:
     resolution: {integrity: sha512-+OopMI1wM/NvAJTHf3O3+beHd1YfKLnSVsOGBl3/7UBDZ4ydVadkbBk5Hjjs9d3ALC5rBaftMY59AvwyC8MzPw==}
     cpu: [x64, arm64, wasm32]
@@ -5073,6 +5079,9 @@ packages:
     resolution: {integrity: sha512-eLoBxg6wE/rZkJPhU/xRX1WTpkFEwDJEN96oxFrTsqBdbT5ec295Q+CoHrL9IT0DipqKhmGcaZmwOt8OON5x1w==}
     engines: {node: '>=12.0.0'}
 
+  nan@2.22.0:
+    resolution: {integrity: sha512-nbajikzWTMwsW+eSsNm3QwlOs7het9gGJU5dDZzRTQGk03vyBOauxgI4VakDzE0PtsGTmXPsXTbbjVhRwR5mpw==}
+
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -5397,6 +5406,9 @@ packages:
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
+
+  pg-native@3.4.5:
+    resolution: {integrity: sha512-X6fwcza2fuYdAWll48Cj0Xa9ikvfaLWjbKmNWZ7iC6caEMMeN7mpFtSEDjS2HgPxhCEHEjlhE7v1jLyM1k+4kA==}
 
   pg-numeric@1.0.2:
     resolution: {integrity: sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==}
@@ -5777,8 +5789,8 @@ packages:
   recharts-scale@0.4.5:
     resolution: {integrity: sha512-kivNFO+0OcUNu7jQquLXAxz1FIwZj8nrj+YkOKc5694NbjCvcT6aSZiIzNzd2Kul4o4rTto8QVR9lMNtxD4G1w==}
 
-  recharts@2.15.0:
-    resolution: {integrity: sha512-cIvMxDfpAmqAmVgc4yb7pgm/O1tmmkl/CjrvXuW+62/+7jj/iF9Ykm+hb/UJt42TREHMyd3gb+pkgoa2MxgDIw==}
+  recharts@2.15.3:
+    resolution: {integrity: sha512-EdOPzTwcFSuqtvkDoaM5ws/Km1+WTAO2eizL7rqiG0V2UVhTnz0m7J2i0CjVPUCdEkZImaWvXLbZDS2H5t6GFQ==}
     engines: {node: '>=14'}
     peerDependencies:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -11036,7 +11048,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.43.1(06878869c94f93919174ed5b6d72e9b5):
+  drizzle-orm@0.43.1(d284f3a5a12ea752bbd49653b6efb968):
     optionalDependencies:
       '@aws-sdk/client-rds-data': 3.799.0
       '@cloudflare/workers-types': 4.20250502.0
@@ -11058,10 +11070,10 @@ snapshots:
       bun-types: 1.2.11
       expo-sqlite: 15.2.9(expo@53.0.6(@babel/core@7.27.1)(bufferutil@4.0.9)(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0)
       gel: 2.1.0
-      knex: 3.1.0(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg@8.15.6)(sqlite3@5.1.7)
+      knex: 3.1.0(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg-native@3.4.5)(pg@8.15.6(pg-native@3.4.5))(sqlite3@5.1.7)
       kysely: 0.28.2
       mysql2: 3.14.1
-      pg: 8.15.6
+      pg: 8.15.6(pg-native@3.4.5)
       postgres: 3.4.5
       prisma: 6.7.0(typescript@5.0.2)
       sql.js: 1.13.0
@@ -11936,7 +11948,7 @@ snapshots:
 
   kleur@3.0.3: {}
 
-  knex@3.1.0(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg@8.15.6)(sqlite3@5.1.7):
+  knex@3.1.0(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg-native@3.4.5)(pg@8.15.6(pg-native@3.4.5))(sqlite3@5.1.7):
     dependencies:
       colorette: 2.0.19
       commander: 10.0.1
@@ -11955,7 +11967,8 @@ snapshots:
     optionalDependencies:
       better-sqlite3: 11.9.1
       mysql2: 3.14.1
-      pg: 8.15.6
+      pg: 8.15.6(pg-native@3.4.5)
+      pg-native: 3.4.5
       sqlite3: 5.1.7
     transitivePeerDependencies:
       - supports-color
@@ -11964,7 +11977,7 @@ snapshots:
 
   lan-network@0.1.5: {}
 
-  langchain@0.3.24(5cbdbab13635c3416e07bff3f79bc247):
+  langchain@0.3.24(695ffe49f9d76c8faecc855e63b035e8):
     dependencies:
       '@langchain/core': 0.3.51(openai@4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1))
       '@langchain/openai': 0.5.10(@langchain/core@0.3.51(openai@4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1)))(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))
@@ -11996,7 +12009,7 @@ snapshots:
       cheerio: 1.0.0
       handlebars: 4.7.8
       peggy: 4.2.0
-      typeorm: 0.3.22(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg@8.15.6)(reflect-metadata@0.2.2)(sql.js@1.13.0)(sqlite3@5.1.7)
+      typeorm: 0.3.22(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg-native@3.4.5)(pg@8.15.6(pg-native@3.4.5))(reflect-metadata@0.2.2)(sql.js@1.13.0)(sqlite3@5.1.7)
     transitivePeerDependencies:
       - encoding
       - openai
@@ -12015,6 +12028,11 @@ snapshots:
       openai: 4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1)
 
   leven@3.1.0: {}
+
+  libpq@1.8.14:
+    dependencies:
+      bindings: 1.5.0
+      nan: 2.22.0
 
   libsql@0.5.8:
     dependencies:
@@ -12463,6 +12481,8 @@ snapshots:
     dependencies:
       lru-cache: 7.18.3
 
+  nan@2.22.0: {}
+
   nanoid@3.3.11: {}
 
   napi-build-utils@2.0.0: {}
@@ -12780,11 +12800,16 @@ snapshots:
 
   pg-int8@1.0.1: {}
 
+  pg-native@3.4.5:
+    dependencies:
+      libpq: 1.8.14
+      pg-types: 2.2.0
+
   pg-numeric@1.0.2: {}
 
-  pg-pool@3.9.6(pg@8.15.6):
+  pg-pool@3.9.6(pg@8.15.6(pg-native@3.4.5)):
     dependencies:
-      pg: 8.15.6
+      pg: 8.15.6(pg-native@3.4.5)
 
   pg-protocol@1.9.5: {}
 
@@ -12806,15 +12831,16 @@ snapshots:
       postgres-interval: 3.0.0
       postgres-range: 1.1.4
 
-  pg@8.15.6:
+  pg@8.15.6(pg-native@3.4.5):
     dependencies:
       pg-connection-string: 2.8.5
-      pg-pool: 3.9.6(pg@8.15.6)
+      pg-pool: 3.9.6(pg@8.15.6(pg-native@3.4.5))
       pg-protocol: 1.9.5
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
       pg-cloudflare: 1.2.5
+      pg-native: 3.4.5
 
   pgpass@1.0.5:
     dependencies:
@@ -13186,7 +13212,7 @@ snapshots:
     dependencies:
       decimal.js-light: 2.5.1
 
-  recharts@2.15.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  recharts@2.15.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
       clsx: 2.1.1
       eventemitter3: 4.0.7
@@ -13729,7 +13755,7 @@ snapshots:
 
   type-fest@0.7.1: {}
 
-  typeorm@0.3.22(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg@8.15.6)(reflect-metadata@0.2.2)(sql.js@1.13.0)(sqlite3@5.1.7):
+  typeorm@0.3.22(better-sqlite3@11.9.1)(mysql2@3.14.1)(pg-native@3.4.5)(pg@8.15.6(pg-native@3.4.5))(reflect-metadata@0.2.2)(sql.js@1.13.0)(sqlite3@5.1.7):
     dependencies:
       '@sqltools/formatter': 1.2.5
       ansis: 3.17.0
@@ -13748,7 +13774,8 @@ snapshots:
     optionalDependencies:
       better-sqlite3: 11.9.1
       mysql2: 3.14.1
-      pg: 8.15.6
+      pg: 8.15.6(pg-native@3.4.5)
+      pg-native: 3.4.5
       sql.js: 1.13.0
       sqlite3: 5.1.7
     transitivePeerDependencies:

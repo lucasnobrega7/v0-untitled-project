@@ -1,68 +1,50 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "@/lib/user-context"
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
-import { Pinecone } from "@pinecone-database/pinecone"
+import { processDocumentsWithPinecone } from "@/lib/pinecone-utils"
 
-// Configurações específicas para o índice existente
-const PINECONE_INDEX_NAME = "agentesdeconversao"
-
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const session = await getServerSession()
-    const { text, knowledgeBaseId, filename } = await req.json()
+    const { type, content } = await request.json()
 
-    if (!text) {
-      return NextResponse.json({ error: "Texto não fornecido" }, { status: 400 })
+    if (!content) {
+      return NextResponse.json({ error: "Conteúdo não fornecido" }, { status: 400 })
     }
 
-    // Dividir o texto em chunks menores
-    const textSplitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
-    })
+    let textToProcess = ""
 
-    const chunks = await textSplitter.splitText(text)
+    if (type === "text") {
+      textToProcess = content
+    } else if (type === "url") {
+      // Buscar conteúdo da URL
+      try {
+        const response = await fetch(content)
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar URL: ${response.statusText}`)
+        }
+        const html = await response.text()
 
-    // Inicializar cliente Pinecone
-    const pinecone = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY!,
-      environment: process.env.PINECONE_ENVIRONMENT!,
-    })
+        // Extrair texto do HTML (simplificado)
+        textToProcess = html
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+      } catch (fetchError) {
+        console.error("Erro ao buscar URL:", fetchError)
+        return NextResponse.json({ error: "Erro ao buscar conteúdo da URL" }, { status: 400 })
+      }
+    } else {
+      return NextResponse.json({ error: "Tipo de conteúdo inválido" }, { status: 400 })
+    }
 
-    // Obter o índice
-    const index = pinecone.index(PINECONE_INDEX_NAME)
-
-    // Criar embeddings usando a API de inferência do Pinecone
-    const embeddings = await pinecone.embeddings.embed({
-      model: "llama-text-embed-v2",
-      inputs: chunks,
-    })
-
-    // Preparar os vetores para upsert
-    const documentId = `doc-${Date.now()}`
-    const vectors = chunks.map((chunk, i) => ({
-      id: `${documentId}-${i}`,
-      values: embeddings[i],
-      metadata: {
-        text: chunk, // Campo "text" conforme configurado no índice
-        source: filename,
-        knowledgeBaseId: knowledgeBaseId || "default",
-        userId: session.user.id,
-        chunkIndex: i,
-        totalChunks: chunks.length,
-      },
-    }))
-
-    // Inserir os vetores no índice
-    await index.upsert(vectors)
+    // Processar o texto e armazenar no Pinecone
+    const chunks = await processDocumentsWithPinecone([textToProcess])
 
     return NextResponse.json({
       success: true,
-      chunks: chunks.length,
-      documentId,
+      message: "Conteúdo processado com sucesso",
+      chunks,
     })
-  } catch (error: any) {
-    console.error("Erro ao processar documento:", error)
-    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
+  } catch (error) {
+    console.error("Erro ao processar conhecimento:", error)
+    return NextResponse.json({ error: "Erro ao processar a solicitação" }, { status: 500 })
   }
 }

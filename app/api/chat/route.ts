@@ -1,117 +1,72 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createConversationalChain } from "@/lib/langchain"
-import { getServerSession } from "@/lib/user-context"
+import { NextResponse } from "next/server"
+import { getOpenAIClient } from "@/lib/ai-client"
+import { queryPineconeIndex } from "@/lib/pinecone-utils"
 import { db } from "@/lib/db"
-import { agents, conversations, messages } from "@/lib/db/schema"
-import { generateResponse } from "@/lib/ai-client"
-import { eq } from "drizzle-orm"
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const session = await getServerSession()
+    const { messages } = await request.json()
 
-    const { agentId, message: messageContent, conversationId } = await req.json()
+    // Obter a última mensagem do usuário
+    const lastUserMessage = messages.filter((m: any) => m.role === "user").pop()
 
-    // Buscar configuração do agente
-    const agentResults = await db.query.agents.findMany({
-      where: eq(agents.id, agentId),
-      with: {
-        knowledgeBase: true,
-      },
-    })
-
-    const agent = agentResults[0]
-
-    if (!agent) {
-      return NextResponse.json({ error: "Agente não encontrado" }, { status: 404 })
+    if (!lastUserMessage) {
+      return NextResponse.json({ error: "Nenhuma mensagem do usuário encontrada" }, { status: 400 })
     }
 
-    let conversation
+    // Consultar a base de conhecimento no Pinecone
+    const relevantDocs = await queryPineconeIndex(lastUserMessage.content, 3)
 
-    // Buscar ou criar conversa
-    if (conversationId) {
-      const conversationResults = await db.query.conversations.findMany({
-        where: eq(conversations.id, conversationId),
-        with: {
-          messages: true,
+    // Construir o contexto com o conhecimento relevante
+    let context = ""
+    if (relevantDocs && relevantDocs.length > 0) {
+      context = "Informações relevantes da base de conhecimento:\n\n"
+      relevantDocs.forEach((doc: any, i: number) => {
+        if (doc.metadata && doc.metadata.text) {
+          context += `${i + 1}. ${doc.metadata.text}\n\n`
+        }
+      })
+    }
+
+    // Construir o prompt para o OpenAI
+    const systemPrompt = `Você é um assistente de IA útil e amigável. 
+${context ? `Use as seguintes informações para responder à pergunta do usuário:\n\n${context}` : ""}
+Se você não souber a resposta, diga que não sabe em vez de inventar informações.`
+
+    // Obter resposta da OpenAI
+    const openai = getOpenAIClient()
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map((m: any) => ({
+          role: m.role,
+          content: m.content,
+        })),
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    })
+
+    const assistantResponse = response.choices[0].message.content || "Desculpe, não consegui gerar uma resposta."
+
+    // Salvar a conversa no banco de dados
+    try {
+      await db.query.conversations.create({
+        data: {
+          userId: "anonymous", // Em um app real, usaria o ID do usuário autenticado
+          messages: JSON.stringify(messages.concat({ role: "assistant", content: assistantResponse })),
+          createdAt: new Date(),
         },
       })
-
-      conversation = conversationResults[0]
-
-      if (!conversation) {
-        return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 })
-      }
-    } else {
-      const [newConversation] = await db
-        .insert(conversations)
-        .values({
-          agentId,
-          userId: session.user.id,
-        })
-        .returning()
-
-      conversation = {
-        ...newConversation,
-        messages: [],
-      }
+    } catch (dbError) {
+      console.error("Erro ao salvar conversa:", dbError)
+      // Continuar mesmo se houver erro no banco de dados
     }
 
-    // Registrar mensagem do usuário
-    const [userMessage] = await db
-      .insert(messages)
-      .values({
-        conversationId: conversation.id,
-        content: messageContent,
-        role: "user",
-      })
-      .returning()
-
-    let response
-
-    // Usar RAG se o agente tiver base de conhecimento
-    if (agent.knowledgeBase) {
-      // Usar o índice "agentesdeconversao" para todos os agentes com base de conhecimento
-      // Em uma implementação completa, você usaria agent.knowledgeBase.indexName
-      const chain = await createConversationalChain("agentesdeconversao")
-
-      const previousMessages = conversation.messages || []
-      const chatHistory = previousMessages
-        .map((m) => `${m.role === "user" ? "Human" : "Assistant"}: ${m.content}`)
-        .join("\n")
-
-      const result = await chain.call({
-        question: messageContent,
-        chat_history: chatHistory,
-      })
-
-      response = result.text
-    } else {
-      // Usar LLM diretamente via OpenAI
-      const result = await generateResponse(messageContent, agent.modelId || "gpt-4o", {
-        temperature: agent.temperature || 0.7,
-        systemPrompt: agent.systemPrompt,
-      })
-
-      response = result.choices[0].message.content
-    }
-
-    // Registrar resposta do agente
-    const [agentMessage] = await db
-      .insert(messages)
-      .values({
-        conversationId: conversation.id,
-        content: response,
-        role: "assistant",
-      })
-      .returning()
-
-    return NextResponse.json({
-      message: agentMessage,
-      conversationId: conversation.id,
-    })
-  } catch (error: any) {
+    return NextResponse.json({ response: assistantResponse })
+  } catch (error) {
     console.error("Erro na API de chat:", error)
-    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
+    return NextResponse.json({ error: "Erro ao processar a solicitação" }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { AuthCheck } from "@/components/auth/auth-check"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { getServerSession } from "@/lib/auth"
 import { MessageSquare, Database, BarChart2 } from "lucide-react"
+import ApiStatus from "@/components/dashboard/api-status"
 
 export default async function DashboardPage() {
   const session = await getServerSession()
@@ -44,6 +45,11 @@ export default async function DashboardPage() {
                 <span className="text-green-400">↑ 3.2%</span> desde o último mês
               </div>
             </div>
+          </div>
+
+          {/* Adicione o componente ApiStatus */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <ApiStatus />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
