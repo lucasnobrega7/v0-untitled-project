@@ -6,32 +6,23 @@
   :root {
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
-
     --card: 0 0% 0%;
     --card-foreground: 0 0% 100%;
-
     --popover: 0 0% 0%;
     --popover-foreground: 0 0% 100%;
-
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
-
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 100%;
-
     --muted: 0 0% 10%;
     --muted-foreground: 0 0% 70%;
-
     --accent: 0 0% 10%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 0 0% 20%;
     --input: 0 0% 10%;
     --ring: 0 0% 100%;
-
     --radius: 0;
   }
 }
@@ -40,9 +31,10 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "ss01" on, "ss02" on, "ss03" on, "ss04" on, "ss05" on;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 
   h1,
@@ -51,11 +43,15 @@
   h4,
   h5,
   h6 {
-    @apply font-serif tracking-tight;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
   }
 
   h1 {
     @apply text-5xl sm:text-6xl md:text-7xl;
+    letter-spacing: -0.04em;
   }
 
   h2 {
@@ -66,27 +62,38 @@
     @apply text-2xl sm:text-3xl;
   }
 
-  .openai-button {
-    @apply border border-white hover:bg-white hover:text-black transition-colors duration-200 py-2 px-4;
+  .openai-gradient-fade {
+    background: linear-gradient(180deg, #000000 50%, #ffffff 50%);
   }
 
-  .openai-button-filled {
-    @apply bg-white text-black hover:bg-opacity-90 transition-colors duration-200 py-2 px-4;
+  .openai-gradient-lines {
+    background: linear-gradient(to bottom, #000 0%, #fff 100%);
+    background-size: 100% 23px;
+    background-repeat: repeat-y;
+    background-image: linear-gradient(to right, #000, #000 100%, transparent 100%);
+  }
+
+  .openai-button {
+    @apply inline-flex items-center justify-center border border-white hover:bg-white hover:text-black transition-colors duration-200 py-1 px-3 text-sm;
+  }
+
+  .openai-button-arrow {
+    @apply inline-flex items-center justify-center border border-white hover:bg-white hover:text-black transition-colors duration-200 py-1 px-3 text-sm;
   }
 
   .openai-link {
     @apply underline hover:no-underline;
   }
 
-  .openai-card {
-    @apply border-t border-white/20 pt-4;
-  }
-
-  .openai-gradient-fade {
-    background: linear-gradient(180deg, #000000 50%, #ffffff 50%);
-  }
-
   .openai-section {
     @apply border-t border-white/20 py-12;
+  }
+
+  .openai-footer-link {
+    @apply text-sm hover:underline;
+  }
+
+  .openai-footer-heading {
+    @apply font-bold text-sm mb-4;
   }
 }

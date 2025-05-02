@@ -3,10 +3,8 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Loader2, Upload, AlertCircle, CheckCircle2 } from "lucide-react"
 
 export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string }) {
@@ -87,7 +85,7 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="file" className="text-sm font-medium text-white">
+        <label htmlFor="file" className="text-sm font-medium">
           Arquivo (opcional)
         </label>
         <Input
@@ -104,7 +102,7 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="text" className="text-sm font-medium text-white">
+        <label htmlFor="text" className="text-sm font-medium">
           Texto
         </label>
         <Textarea
@@ -119,22 +117,31 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
       </div>
 
       {result && (
-        <Alert
-          variant={result.success ? "default" : "destructive"}
-          className={
-            result.success ? "bg-white/10 text-white border-white/20" : "bg-red-500/20 text-white border-red-500/50"
-          }
+        <div
+          className={`p-4 ${
+            result.success ? "bg-white/10 border border-white/20" : "bg-red-500/20 border border-red-500/50"
+          }`}
         >
-          {result.success ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-          <AlertTitle>{result.success ? "Sucesso" : "Erro"}</AlertTitle>
-          <AlertDescription>{result.message}</AlertDescription>
-        </Alert>
+          <div className="flex items-start">
+            {result.success ? (
+              <CheckCircle2 className="h-5 w-5 mr-2 flex-shrink-0" />
+            ) : (
+              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+            )}
+            <div>
+              <h4 className="text-sm font-bold">{result.success ? "Sucesso" : "Erro"}</h4>
+              <p className="text-sm">{result.message}</p>
+            </div>
+          </div>
+        </div>
       )}
 
-      <Button
+      <button
         type="submit"
         disabled={isUploading || !text.trim()}
-        className="w-full bg-white text-black hover:bg-white/90"
+        className={`w-full border border-white py-2 px-4 flex items-center justify-center ${
+          isUploading || !text.trim() ? "opacity-50 cursor-not-allowed" : "hover:bg-white hover:text-black"
+        }`}
       >
         {isUploading ? (
           <>
@@ -147,7 +154,7 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
             Processar Documento
           </>
         )}
-      </Button>
+      </button>
     </form>
   )
 }

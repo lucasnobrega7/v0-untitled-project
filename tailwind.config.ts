@@ -21,7 +21,6 @@ const config = {
     extend: {
       fontFamily: {
         sans: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
-        serif: ["Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
