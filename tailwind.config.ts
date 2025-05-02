@@ -56,13 +56,23 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // OpenAI specific colors
-        openai: {
-          teal: "#10A37F",
-          teal2: "#1A7F64",
-          dark: "#202123",
-          gray: "#353740",
-          lightgray: "#ECECF1",
+        // Flair theme colors
+        flair: {
+          blue: {
+            light: "#3B82F6",
+            DEFAULT: "#2563EB",
+            dark: "#1D4ED8",
+          },
+          indigo: {
+            light: "#6366F1",
+            DEFAULT: "#4F46E5",
+            dark: "#4338CA",
+          },
+          dark: {
+            light: "#1E293B",
+            DEFAULT: "#0F172A",
+            dark: "#020617",
+          },
         },
       },
       borderRadius: {
@@ -83,14 +93,22 @@ const config = {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
         },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.8" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "gradient-shift": "gradient-shift 10s ease infinite",
+        "glow-pulse": "glow-pulse 3s ease-in-out infinite",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "flair-gradient": "linear-gradient(to right, #3B82F6, #4F46E5)",
+        "flair-dark-gradient":
+          "radial-gradient(ellipse at top, #1E293B, #0F172A), radial-gradient(ellipse at bottom, #0F172A, #020617)",
       },
     },
   },

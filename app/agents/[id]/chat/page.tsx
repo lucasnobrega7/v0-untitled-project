@@ -115,19 +115,19 @@ export default function AgentChatPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <header className="border-b border-gray-100">
+    <div className="min-h-screen flex flex-col">
+      <header className="border-b border-white/5">
         <div className="container py-4">
           <div className="flex items-center">
-            <Link href="/agents" className="flex items-center text-gray-600 hover:text-openai-teal mr-4">
+            <Link href="/agents" className="flex items-center text-white/70 hover:text-white mr-4 transition-colors">
               <ArrowLeft className="h-4 w-4 mr-1" />
               <span className="text-sm">Voltar</span>
             </Link>
             <div className="flex items-center">
-              <Avatar className="h-8 w-8 bg-openai-teal text-white">
+              <Avatar className="h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                 <Bot className="h-4 w-4" />
               </Avatar>
-              <span className="ml-2 font-medium">Assistente de Vendas</span>
+              <span className="ml-2 font-medium text-white">Assistente de Vendas</span>
             </div>
           </div>
         </div>
@@ -137,11 +137,11 @@ export default function AgentChatPage() {
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Bot className="h-8 w-8 text-openai-teal" />
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 backdrop-blur-sm">
+                <Bot className="h-8 w-8 text-blue-400" />
               </div>
-              <h2 className="text-2xl font-medium mb-2">Como posso ajudar?</h2>
-              <p className="text-gray-600 max-w-md">
+              <h2 className="text-2xl font-medium mb-2 text-white">Como posso ajudar?</h2>
+              <p className="text-white/70 max-w-md">
                 Este assistente pode responder perguntas sobre produtos, qualificar leads e ajudar com o processo de
                 vendas.
               </p>
@@ -155,13 +155,15 @@ export default function AgentChatPage() {
                   }`}
                 >
                   <Avatar
-                    className={`h-8 w-8 ${message.role === "assistant" ? "bg-openai-teal text-white" : "bg-gray-200"}`}
+                    className={`h-8 w-8 ${message.role === "assistant" ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white" : "bg-white/10 text-white"}`}
                   >
                     {message.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                   </Avatar>
                   <div
                     className={`rounded-lg px-4 py-2 ${
-                      message.role === "user" ? "bg-openai-teal text-white" : "bg-gray-100 text-gray-800"
+                      message.role === "user"
+                        ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
+                        : "bg-white/5 text-white backdrop-blur-sm"
                     }`}
                   >
                     {message.content}
@@ -173,19 +175,19 @@ export default function AgentChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="border-t border-gray-100 p-4">
+        <div className="border-t border-white/5 p-4">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite sua mensagem..."
               disabled={loading}
-              className="flex-1 border-gray-200 focus-visible:ring-openai-teal"
+              className="flex-1 border-white/10 bg-white/5 text-white placeholder:text-white/50 focus-visible:ring-blue-500"
             />
             <Button
               type="submit"
               disabled={loading || !input.trim()}
-              className="bg-openai-teal hover:bg-openai-teal2 text-white"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0"
             >
               {loading ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

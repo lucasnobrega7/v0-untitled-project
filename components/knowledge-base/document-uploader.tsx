@@ -6,7 +6,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Loader2, Upload, AlertCircle, CheckCircle2 } from "lucide-react"
 
@@ -86,69 +85,71 @@ export function DocumentUploader({ knowledgeBaseId }: { knowledgeBaseId?: string
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Adicionar Documento</CardTitle>
-        <CardDescription>
-          Carregue um arquivo de texto ou cole o conteúdo diretamente para adicionar à base de conhecimento.
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="file" className="text-sm font-medium">
-              Arquivo (opcional)
-            </label>
-            <Input id="file" type="file" accept=".txt" onChange={handleFileChange} disabled={isUploading} />
-            <p className="text-xs text-gray-500">
-              Atualmente suportamos apenas arquivos .txt. Suporte para PDF e DOCX em breve.
-            </p>
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label htmlFor="file" className="text-sm font-medium text-white">
+          Arquivo (opcional)
+        </label>
+        <Input
+          id="file"
+          type="file"
+          accept=".txt"
+          onChange={handleFileChange}
+          disabled={isUploading}
+          className="border-white/10 bg-white/5 text-white"
+        />
+        <p className="text-xs text-white/50">
+          Atualmente suportamos apenas arquivos .txt. Suporte para PDF e DOCX em breve.
+        </p>
+      </div>
 
-          <div className="space-y-2">
-            <label htmlFor="text" className="text-sm font-medium">
-              Texto
-            </label>
-            <Textarea
-              id="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Cole ou digite o texto aqui..."
-              rows={10}
-              disabled={isUploading}
-              className="resize-none"
-            />
-          </div>
+      <div className="space-y-2">
+        <label htmlFor="text" className="text-sm font-medium text-white">
+          Texto
+        </label>
+        <Textarea
+          id="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Cole ou digite o texto aqui..."
+          rows={10}
+          disabled={isUploading}
+          className="resize-none border-white/10 bg-white/5 text-white placeholder:text-white/30"
+        />
+      </div>
 
-          {result && (
-            <Alert variant={result.success ? "default" : "destructive"}>
-              {result.success ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              <AlertTitle>{result.success ? "Sucesso" : "Erro"}</AlertTitle>
-              <AlertDescription>{result.message}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
+      {result && (
+        <Alert
+          variant={result.success ? "default" : "destructive"}
+          className={
+            result.success
+              ? "bg-blue-500/20 text-white border-blue-500/50"
+              : "bg-red-500/20 text-white border-red-500/50"
+          }
+        >
+          {result.success ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+          <AlertTitle>{result.success ? "Sucesso" : "Erro"}</AlertTitle>
+          <AlertDescription>{result.message}</AlertDescription>
+        </Alert>
+      )}
 
-        <CardFooter>
-          <Button
-            type="submit"
-            disabled={isUploading || !text.trim()}
-            className="w-full bg-openai-teal hover:bg-openai-teal2 text-white"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processando...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Processar Documento
-              </>
-            )}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+      <Button
+        type="submit"
+        disabled={isUploading || !text.trim()}
+        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0"
+      >
+        {isUploading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processando...
+          </>
+        ) : (
+          <>
+            <Upload className="mr-2 h-4 w-4" />
+            Processar Documento
+          </>
+        )}
+      </Button>
+    </form>
   )
 }
