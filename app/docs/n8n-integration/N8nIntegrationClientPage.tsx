@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Info } from 'lucide-react'
+import { Info } from "lucide-react"
 
 export default function N8nIntegrationClientPage() {
   return (
@@ -104,7 +104,7 @@ export default function N8nIntegrationClientPage() {
                 <li>
                   <p className="font-medium">Obtenha sua API Key</p>
                   <p className="text-sm text-muted-foreground">
-                    Acesse o painel da plataforma Agentes de Conversão, vá para Configurações {'>'}  API e gere uma nova
+                    Acesse o painel da plataforma Agentes de Conversão, vá para Configurações {">"} API e gere uma nova
                     API Key.
                   </p>
                 </li>
@@ -129,8 +129,8 @@ export default function N8nIntegrationClientPage() {
                 <li>
                   <p className="font-medium">Configure o webhook na plataforma</p>
                   <p className="text-sm text-muted-foreground">
-                    Na plataforma Agentes de Conversão, vá para Configurações {'>'}  Webhooks e adicione um novo webhook com
-                    a URL do N8N e os eventos desejados.
+                    Na plataforma Agentes de Conversão, vá para Configurações {">"} Webhooks e adicione um novo webhook
+                    com a URL do N8N e os eventos desejados.
                   </p>
                 </li>
               </ol>
@@ -213,7 +213,7 @@ if (signature === expectedSignature) {
 
               <ol className="list-decimal pl-6 space-y-2 mt-2">
                 <li>Acesse o painel da plataforma Agentes de Conversão</li>
-                <li>Vá para Configurações {'>'}  Webhooks</li>
+                <li>Vá para Configurações {">"} Webhooks</li>
                 <li>Clique em "Adicionar Webhook"</li>
                 <li>Preencha a URL do webhook gerada pelo N8N</li>
                 <li>Selecione os eventos que deseja receber</li>
