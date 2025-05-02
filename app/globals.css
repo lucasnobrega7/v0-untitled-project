@@ -35,6 +35,8 @@
   body {
     @apply bg-background text-foreground;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1,
@@ -73,27 +75,31 @@
     background-image: linear-gradient(to right, #000, #000 100%, transparent 100%);
   }
 
-  .openai-button {
-    @apply inline-flex items-center justify-center border border-white hover:bg-white hover:text-black transition-colors duration-200 py-1 px-3 text-sm;
+  /* Buttons */
+  button,
+  .button {
+    @apply transition-colors duration-200;
   }
 
-  .openai-button-arrow {
-    @apply inline-flex items-center justify-center border border-white hover:bg-white hover:text-black transition-colors duration-200 py-1 px-3 text-sm;
+  /* Links */
+  a {
+    @apply transition-colors duration-200;
   }
 
-  .openai-link {
-    @apply underline hover:no-underline;
+  /* Form elements */
+  input,
+  textarea,
+  select {
+    @apply transition-colors duration-200;
   }
 
-  .openai-section {
-    @apply border-t border-white/20 py-12;
+  /* Sections */
+  section {
+    @apply py-12 md:py-20;
   }
 
-  .openai-footer-link {
-    @apply text-sm hover:underline;
-  }
-
-  .openai-footer-heading {
-    @apply font-bold text-sm mb-4;
+  /* Container */
+  .container {
+    @apply px-4 md:px-6 mx-auto;
   }
 }
