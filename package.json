@@ -107,6 +107,7 @@
     "handlebars": "latest",
     "peggy": "latest",
     "typeorm": "latest",
+    "@emotion/is-prop-valid": "latest",
     "openai": "latest",
     "cohere-ai": "latest",
     "next-auth": "latest",
@@ -116,7 +117,8 @@
     "drizzle-kit": "latest",
     "@pinecone-database/pinecone": "latest",
     "langchain": "latest",
-    "@langchain/openai": "latest"
+    "@langchain/openai": "latest",
+    "framer-motion": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

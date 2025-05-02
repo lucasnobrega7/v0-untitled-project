@@ -1,35 +1,17 @@
 import { MainLayout } from "@/components/layout/main-layout"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import HeroGeometric from "@/components/hero-geometric"
 
 export default function Home() {
   return (
     <MainLayout>
-      <section className="relative min-h-[80vh] flex items-center">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/OpenAI_Website_Clone__Community_-N4UMmInBmfKvnutkYNKNuVKdKNEAz6.png"
-            alt="Hero background"
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-black/50"></div>
-        </div>
-
-        <div className="container mx-auto px-4 md:px-6 relative z-10 py-20">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-normal mb-8 leading-tight">
-              Criando agentes de IA seguros que beneficiam a humanidade
-            </h1>
-            <Link
-              href="/about"
-              className="inline-flex items-center border border-white py-2 px-4 hover:bg-white hover:text-black transition-colors"
-            >
-              Saiba mais sobre Agentes de Conversão
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Substituindo a seção hero pela nova versão animada */}
+      <HeroGeometric
+        badge="Agentes de Conversão"
+        title1="Criando agentes de IA seguros"
+        title2="que beneficiam a humanidade"
+      />
 
       <section className="container mx-auto px-4 md:px-6 py-20">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
