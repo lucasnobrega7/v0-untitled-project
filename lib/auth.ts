@@ -4,7 +4,7 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { MOCK_USER_ID, MOCK_USER_NAME } from "./user-context"
-import { compare } from "bcrypt"
+import { compare } from "bcryptjs"
 
 // Mock da sessão para desenvolvimento sem autenticação
 export const mockSession = {

@@ -4724,8 +4724,8 @@ packages:
       typeorm:
         optional: true
 
-  langsmith@0.3.24:
-    resolution: {integrity: sha512-fPpJNHmELr3IrUau3YXgjWZI8GcZiK+lLw5BAV5ZhQYEUvcMSVI+cLqfhTnCcU6FTzr5VeJSodt8tA4n7K1dDg==}
+  langsmith@0.3.25:
+    resolution: {integrity: sha512-KuJu89VY3DmCdFvlVxQG4owQl546Z6pQc6TbhsyP77MkVJgZr8yvevZvvcXDWIpT2o2s52c9Aww2XVOH6GmHxQ==}
     peerDependencies:
       openai: '*'
     peerDependenciesMeta:
@@ -8610,7 +8610,7 @@ snapshots:
       camelcase: 6.3.0
       decamelize: 1.2.0
       js-tiktoken: 1.0.20
-      langsmith: 0.3.24(openai@4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1))
+      langsmith: 0.3.25(openai@4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1))
       mustache: 4.2.0
       p-queue: 6.6.2
       p-retry: 4.6.2
@@ -11985,7 +11985,7 @@ snapshots:
       js-tiktoken: 1.0.20
       js-yaml: 4.1.0
       jsonpointer: 5.0.1
-      langsmith: 0.3.24(openai@4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1))
+      langsmith: 0.3.25(openai@4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1))
       openapi-types: 12.1.3
       p-retry: 4.6.2
       uuid: 10.0.0
@@ -12015,7 +12015,7 @@ snapshots:
       - openai
       - ws
 
-  langsmith@0.3.24(openai@4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1)):
+  langsmith@0.3.25(openai@4.97.0(encoding@0.1.13)(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.1)):
     dependencies:
       '@types/uuid': 10.0.0
       chalk: 4.1.2

@@ -116,11 +116,11 @@
     "langchain": "latest",
     "framer-motion": "latest",
     "next-auth": "latest",
-    "@auth/prisma-adapter": "latest",
-    "bcryptjs": "latest",
     "openai": "latest",
     "cohere-ai": "latest",
-    "@pinecone-database/pinecone": "latest"
+    "@pinecone-database/pinecone": "latest",
+    "@auth/prisma-adapter": "latest",
+    "bcryptjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
