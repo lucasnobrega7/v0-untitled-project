@@ -58,7 +58,6 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
-    "prisma": "latest",
     "pg": "latest",
     "gel": "latest",
     "knex": "latest",
@@ -110,7 +109,6 @@
     "ws": "latest",
     "pg-native": "latest",
     "drizzle-orm": "latest",
-    "@paralleldrive/cuid2": "latest",
     "drizzle-kit": "latest",
     "@langchain/openai": "latest",
     "langchain": "latest",
@@ -119,7 +117,8 @@
     "openai": "latest",
     "cohere-ai": "latest",
     "@pinecone-database/pinecone": "latest",
-    "@auth/prisma-adapter": "latest",
+    "@paralleldrive/cuid2": "latest",
+    "@auth/drizzle-adapter": "latest",
     "bcryptjs": "latest"
   },
   "devDependencies": {

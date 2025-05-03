@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uniqueIndex, varchar, doublePrecision } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, uniqueIndex, varchar, doublePrecision, integer } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 import { createId } from "@paralleldrive/cuid2"
 
@@ -14,12 +14,73 @@ export const users = pgTable(
     email: text("email").unique(),
     emailVerified: timestamp("email_verified"),
     image: text("image"),
+    password: text("password"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
   (table) => {
     return {
       emailIdx: uniqueIndex("email_idx").on(table.email),
+    }
+  },
+)
+
+// Tabela de contas (para autenticação OAuth)
+export const accounts = pgTable(
+  "accounts",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => createId()),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+  },
+  (table) => {
+    return {
+      providerProviderAccountIdKey: uniqueIndex("provider_provider_account_id_key").on(
+        table.provider,
+        table.providerAccountId,
+      ),
+    }
+  },
+)
+
+// Tabela de sessões
+export const sessions = pgTable("sessions", {
+  id: varchar("id")
+    .primaryKey()
+    .notNull()
+    .$defaultFn(() => createId()),
+  sessionToken: text("session_token").notNull().unique(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires").notNull(),
+})
+
+// Tabela de tokens de verificação
+export const verificationTokens = pgTable(
+  "verification_tokens",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull().unique(),
+    expires: timestamp("expires").notNull(),
+  },
+  (table) => {
+    return {
+      identifierTokenKey: uniqueIndex("identifier_token_key").on(table.identifier, table.token),
     }
   },
 )
@@ -88,8 +149,24 @@ export const messages = pgTable("messages", {
 
 // Definição de relações
 export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(accounts),
+  sessions: many(sessions),
   agents: many(agents),
   conversations: many(conversations),
+}))
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}))
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
 }))
 
 export const agentsRelations = relations(agents, ({ one, many }) => ({

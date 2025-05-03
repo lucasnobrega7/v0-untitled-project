@@ -1,10 +1,12 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "@/lib/prisma"
+import { DrizzleAdapter } from "@auth/drizzle-adapter"
+import { db } from "@/lib/db"
 import { MOCK_USER_ID, MOCK_USER_NAME } from "./user-context"
 import { compare } from "bcryptjs"
+import { eq } from "drizzle-orm"
+import { users } from "./db/schema"
 
 // Mock da sessão para desenvolvimento sem autenticação
 export const mockSession = {
@@ -23,7 +25,7 @@ export async function getServerSession() {
 
 // Opções de autenticação
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: DrizzleAdapter(db),
   session: {
     strategy: "jwt",
   },
@@ -48,11 +50,8 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        })
+        const result = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1)
+        const user = result[0]
 
         if (!user || !user.password) {
           return null
@@ -84,11 +83,12 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async jwt({ token, user }) {
-      const dbUser = await prisma.user.findFirst({
-        where: {
-          email: token.email!,
-        },
-      })
+      if (!token.email) {
+        return token
+      }
+
+      const result = await db.select().from(users).where(eq(users.email, token.email)).limit(1)
+      const dbUser = result[0]
 
       if (!dbUser) {
         if (user) {

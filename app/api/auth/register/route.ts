@@ -1,6 +1,8 @@
 import { hash } from "bcryptjs"
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { db } from "@/lib/db"
+import { users } from "@/lib/db/schema"
+import { eq } from "drizzle-orm"
 
 export async function POST(req: Request) {
   try {
@@ -12,11 +14,9 @@ export async function POST(req: Request) {
     }
 
     // Verificar se o email já está em uso
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
+    const existingUsers = await db.select().from(users).where(eq(users.email, email)).limit(1)
 
-    if (existingUser) {
+    if (existingUsers.length > 0) {
       return NextResponse.json({ message: "Este email já está em uso" }, { status: 409 })
     }
 
@@ -24,16 +24,17 @@ export async function POST(req: Request) {
     const hashedPassword = await hash(password, 10)
 
     // Criar o usuário
-    const user = await prisma.user.create({
-      data: {
+    const [newUser] = await db
+      .insert(users)
+      .values({
         name,
         email,
         password: hashedPassword,
-      },
-    })
+      })
+      .returning()
 
     // Remover a senha do objeto de resposta
-    const { password: _, ...userWithoutPassword } = user
+    const { password: _, ...userWithoutPassword } = newUser
 
     return NextResponse.json(
       {
