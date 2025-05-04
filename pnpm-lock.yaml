@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@auth/core':
         specifier: latest
-        version: 0.39.0(nodemailer@7.0.0)
+        version: 0.39.0(nodemailer@7.0.2)
       '@auth/supabase-adapter':
         specifier: latest
-        version: 1.9.0(@supabase/supabase-js@2.49.4(bufferutil@4.0.9))(nodemailer@7.0.0)
+        version: 1.9.0(@supabase/supabase-js@2.49.4(bufferutil@4.0.9))(nodemailer@7.0.2)
       '@aws-sdk/client-rds-data':
         specifier: latest
         version: 3.799.0
@@ -289,13 +289,13 @@ importers:
         version: 15.2.4(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       next-auth:
         specifier: latest
-        version: 4.24.11(@auth/core@0.39.0(nodemailer@7.0.0))(next@15.2.4(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(nodemailer@7.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 4.24.11(@auth/core@0.39.0(nodemailer@7.0.2))(next@15.2.4(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(nodemailer@7.0.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       next-themes:
         specifier: ^0.4.4
         version: 0.4.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       nodemailer:
         specifier: latest
-        version: 7.0.0
+        version: 7.0.2
       openai:
         specifier: latest
         version: 4.97.0(encoding@0.1.13)(ws@8.18.2(bufferutil@4.0.9))(zod@3.24.1)
@@ -4933,8 +4933,8 @@ packages:
   node-releases@2.0.19:
     resolution: {integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==}
 
-  nodemailer@7.0.0:
-    resolution: {integrity: sha512-9QyEp969UmUWVDB2gVQvxHm1bqkyuC5YZIyX/ySJUpIVyXpuEFyBAuoFFs+G5/C2ZaUp9F5A65DPfxedfVHXXQ==}
+  nodemailer@7.0.2:
+    resolution: {integrity: sha512-SYsisPeLFYli5Q+BCGSyHT5CVvezPmQjHgINV9KVvVLV1aktuoD4E0Np9Q3ND9I481qIHzUQzVT+Tl/Tw7Ivdg==}
     engines: {node: '>=6.0.0'}
 
   nopt@5.0.0:
@@ -6415,7 +6415,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@auth/core@0.39.0(nodemailer@7.0.0)':
+  '@auth/core@0.39.0(nodemailer@7.0.2)':
     dependencies:
       '@panva/hkdf': 1.2.1
       jose: 6.0.10
@@ -6423,11 +6423,11 @@ snapshots:
       preact: 10.24.3
       preact-render-to-string: 6.5.11(preact@10.24.3)
     optionalDependencies:
-      nodemailer: 7.0.0
+      nodemailer: 7.0.2
 
-  '@auth/supabase-adapter@1.9.0(@supabase/supabase-js@2.49.4(bufferutil@4.0.9))(nodemailer@7.0.0)':
+  '@auth/supabase-adapter@1.9.0(@supabase/supabase-js@2.49.4(bufferutil@4.0.9))(nodemailer@7.0.2)':
     dependencies:
-      '@auth/core': 0.39.0(nodemailer@7.0.0)
+      '@auth/core': 0.39.0(nodemailer@7.0.2)
       '@supabase/supabase-js': 2.49.4(bufferutil@4.0.9)
     transitivePeerDependencies:
       - '@simplewebauthn/browser'
@@ -12061,7 +12061,7 @@ snapshots:
 
   nested-error-stacks@2.0.1: {}
 
-  next-auth@4.24.11(@auth/core@0.39.0(nodemailer@7.0.0))(next@15.2.4(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(nodemailer@7.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  next-auth@4.24.11(@auth/core@0.39.0(nodemailer@7.0.2))(next@15.2.4(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(nodemailer@7.0.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
       '@babel/runtime': 7.27.1
       '@panva/hkdf': 1.2.1
@@ -12076,8 +12076,8 @@ snapshots:
       react-dom: 19.0.0(react@19.0.0)
       uuid: 8.3.2
     optionalDependencies:
-      '@auth/core': 0.39.0(nodemailer@7.0.0)
-      nodemailer: 7.0.0
+      '@auth/core': 0.39.0(nodemailer@7.0.2)
+      nodemailer: 7.0.2
 
   next-themes@0.4.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
@@ -12155,7 +12155,7 @@ snapshots:
 
   node-releases@2.0.19: {}
 
-  nodemailer@7.0.0: {}
+  nodemailer@7.0.2: {}
 
   nopt@5.0.0:
     dependencies:
