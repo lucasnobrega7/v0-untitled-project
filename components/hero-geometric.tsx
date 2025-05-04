@@ -78,7 +78,7 @@ function ElegantShape({
   )
 }
 
-export default function HeroGeometric({
+export function HeroGeometric({
   badge = "Agentes de Conversão",
   title1 = "Criando agentes de IA seguros",
   title2 = "que beneficiam a humanidade",

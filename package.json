@@ -123,7 +123,10 @@
     "@supabase/ssr": "latest",
     "uuid": "latest",
     "bcryptjs": "latest",
-    "crypto": "latest"
+    "crypto": "latest",
+    "@auth/supabase-adapter": "latest",
+    "dotenv": "latest",
+    "url": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

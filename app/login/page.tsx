@@ -4,60 +4,83 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { signIn } from "next-auth/react"
+import { ArrowRight, ArrowLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError("")
 
-    // Simulação de login
-    setTimeout(() => {
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
+
+      if (result?.error) {
+        setError("Credenciais inválidas. Por favor, tente novamente.")
+        setLoading(false)
+      } else {
+        router.push(callbackUrl)
+      }
+    } catch (error) {
+      setError("Ocorreu um erro ao fazer login. Por favor, tente novamente.")
       setLoading(false)
-      window.location.href = "/dashboard"
-    }, 1500)
+    }
   }
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      <header className="border-b border-white/10 py-4">
-        <div className="container mx-auto px-4 md:px-6">
-          <Link href="/" className="flex items-center">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 32 32"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="mr-2"
-            >
-              <path
-                d="M16 0C7.163 0 0 7.163 0 16C0 24.837 7.163 32 16 32C24.837 32 32 24.837 32 16C32 7.163 24.837 0 16 0ZM14.5 21.5C14.5 22.881 13.381 24 12 24C10.619 24 9.5 22.881 9.5 21.5C9.5 20.119 10.619 19 12 19C13.381 19 14.5 20.119 14.5 21.5ZM14.5 10.5C14.5 11.881 13.381 13 12 13C10.619 13 9.5 11.881 9.5 10.5C9.5 9.119 10.619 8 12 8C13.381 8 14.5 9.119 14.5 10.5ZM20 16C20 17.381 18.881 18.5 17.5 18.5C16.119 18.5 15 17.381 15 16C15 14.619 16.119 13.5 17.5 13.5C18.881 13.5 20 14.619 20 16ZM22.5 21.5C22.5 22.881 21.381 24 20 24C18.619 24 17.5 22.881 17.5 21.5C17.5 20.119 18.619 19 20 19C21.381 19 22.5 20.119 22.5 21.5ZM22.5 10.5C22.5 11.881 21.381 13 20 13C18.619 13 17.5 11.881 17.5 10.5C17.5 9.119 18.619 8 20 8C21.381 8 22.5 9.119 22.5 10.5Z"
-                fill="white"
-              />
-            </svg>
-            <span className="font-medium">Agentes de Conversão</span>
-          </Link>
-        </div>
-      </header>
+      <div className="container mx-auto px-4 py-4">
+        <Link href="/" className="flex items-center text-white/70 hover:text-white">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar para a página inicial
+        </Link>
+      </div>
 
       <main className="flex-1 flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
+            <Link href="/" className="inline-block mb-6">
+              <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M16 0C7.163 0 0 7.163 0 16C0 24.837 7.163 32 16 32C24.837 32 32 24.837 32 16C32 7.163 24.837 0 16 0ZM14.5 21.5C14.5 22.881 13.381 24 12 24C10.619 24 9.5 22.881 9.5 21.5C9.5 20.119 10.619 19 12 19C13.381 19 14.5 20.119 14.5 21.5ZM14.5 10.5C14.5 11.881 13.381 13 12 13C10.619 13 9.5 11.881 9.5 10.5C9.5 9.119 10.619 8 12 8C13.381 8 14.5 9.119 14.5 10.5ZM20 16C20 17.381 18.881 18.5 17.5 18.5C16.119 18.5 15 17.381 15 16C15 14.619 16.119 13.5 17.5 13.5C18.881 13.5 20 14.619 20 16ZM22.5 21.5C22.5 22.881 21.381 24 20 24C18.619 24 17.5 22.881 17.5 21.5C17.5 20.119 18.619 19 20 19C21.381 19 22.5 20.119 22.5 21.5ZM22.5 10.5C22.5 11.881 21.381 13 20 13C18.619 13 17.5 11.881 17.5 10.5C17.5 9.119 18.619 8 20 8C21.381 8 22.5 9.119 22.5 10.5Z"
+                  fill="white"
+                />
+              </svg>
+            </Link>
             <h1 className="text-3xl font-normal mb-2">Entrar na sua conta</h1>
             <p className="text-white/70">Bem-vindo de volta! Por favor, entre com suas credenciais.</p>
           </div>
 
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
+              <Label htmlFor="email" className="block text-sm font-medium mb-2">
                 Email
-              </label>
-              <input
+              </Label>
+              <Input
                 id="email"
                 type="email"
                 value={email}
@@ -70,14 +93,14 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-sm font-medium">
+                <Label htmlFor="password" className="block text-sm font-medium">
                   Senha
-                </label>
-                <Link href="/forgot-password" className="text-sm underline hover:no-underline">
+                </Label>
+                <Link href="/reset-password" className="text-sm underline hover:no-underline">
                   Esqueceu a senha?
                 </Link>
               </div>
-              <input
+              <Input
                 id="password"
                 type="password"
                 value={password}
@@ -88,7 +111,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
               className="w-full bg-white text-black py-2 px-4 hover:bg-white/90 transition-colors flex items-center justify-center"
@@ -101,7 +124,7 @@ export default function LoginPage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
-            </button>
+            </Button>
           </form>
 
           <div className="mt-8 text-center">
@@ -124,8 +147,20 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-4">
-              <button className="border border-white/20 py-2 px-4 hover:bg-white/5 transition-colors">Google</button>
-              <button className="border border-white/20 py-2 px-4 hover:bg-white/5 transition-colors">Microsoft</button>
+              <Button
+                variant="outline"
+                className="border-white/20 hover:bg-white/5"
+                onClick={() => signIn("google", { callbackUrl })}
+              >
+                Google
+              </Button>
+              <Button
+                variant="outline"
+                className="border-white/20 hover:bg-white/5"
+                onClick={() => signIn("github", { callbackUrl })}
+              >
+                GitHub
+              </Button>
             </div>
           </div>
         </div>
