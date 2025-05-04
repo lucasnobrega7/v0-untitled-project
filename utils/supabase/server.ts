@@ -29,3 +29,18 @@ export async function createClient() {
 export function createServerSupabaseClient() {
   return createClient()
 }
+
+// Função para obter cliente com chave de serviço (para operações administrativas)
+export async function getAdminClient() {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY não está definida")
+  }
+
+  return createServerClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+    cookies: {
+      get: () => undefined,
+      set: () => {},
+      remove: () => {},
+    },
+  })
+}

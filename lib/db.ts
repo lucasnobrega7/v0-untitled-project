@@ -18,8 +18,21 @@ export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!)
 // Criar cliente Supabase com a chave de serviço para uso no servidor (quando disponível)
 export const supabaseAdmin = supabaseServiceKey ? createClient<Database>(supabaseUrl!, supabaseServiceKey) : supabase
 
+// Configuração do PostgreSQL para conexão direta (quando necessário)
+const pgConfig = {
+  host: process.env.POSTGRES_HOST || "db.cdttnoomvugputkweazg.supabase.co",
+  port: Number.parseInt(process.env.POSTGRES_PORT || "5432"),
+  database: process.env.POSTGRES_DATABASE || "postgres",
+  username: process.env.POSTGRES_USER || "postgres",
+  password: process.env.POSTGRES_PASSWORD,
+}
+
+// String de conexão para o PostgreSQL
+const connectionString =
+  process.env.NEON_NEON_DATABASE_URL ||
+  `postgresql://${pgConfig.username}:${pgConfig.password}@${pgConfig.host}:${pgConfig.port}/${pgConfig.database}`
+
 // Configuração do Drizzle para compatibilidade com código existente
-const connectionString = process.env.NEON_NEON_NEON_DATABASE_URL || process.env.POSTGRES_URL || ""
 const client = postgres(connectionString)
 export const db = drizzle(client)
 

@@ -124,9 +124,9 @@
     "uuid": "latest",
     "bcryptjs": "latest",
     "crypto": "latest",
-    "@auth/supabase-adapter": "latest",
     "dotenv": "latest",
-    "url": "latest"
+    "url": "latest",
+    "@auth/supabase-adapter": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
