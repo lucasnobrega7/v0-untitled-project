@@ -1,13 +1,13 @@
 import type React from "react"
-import "./globals.css"
-import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
-
-const inter = Inter({ subsets: ["latin"] })
+import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/components/auth-provider"
+import "./globals.css"
+import "./fonts.css"
 
 export const metadata = {
-  title: "Assistente IA com Base de Conhecimento",
-  description: "Demonstração de uso de variáveis de ambiente para criar um assistente de IA",
+  title: "Agentes de Conversão",
+  description: "Plataforma de agentes conversacionais para conversão de leads",
     generator: 'v0.dev'
 }
 
@@ -18,10 +18,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+      <body className="font-secondary antialiased">
+        <AuthProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   )

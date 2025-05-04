@@ -1,43 +1,53 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { CohereClient } from "cohere-ai"
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
     // Verificar se a API key está configurada
     if (!process.env.COHERE_API_KEY) {
-      return NextResponse.json({ error: "API key da Cohere não configurada" }, { status: 500 })
+      console.error("COHERE_API_KEY não está configurada")
+      return NextResponse.json({ error: "Configuração da API Cohere não encontrada" }, { status: 500 })
     }
 
-    // Obter o texto do corpo da requisição
-    const { text } = await request.json()
+    const { text } = await req.json()
 
-    // Fazer a requisição para a API da Cohere
-    const response = await fetch("https://api.cohere.ai/v1/embed", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        texts: [text],
-        model: "embed-english-v3.0",
-      }),
+    // Validar o formato dos dados
+    if (!text || typeof text !== "string") {
+      return NextResponse.json({ error: "Texto inválido ou não fornecido" }, { status: 400 })
+    }
+
+    const cohere = new CohereClient({
+      token: process.env.COHERE_API_KEY,
     })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || "Erro na API da Cohere")
-    }
+    console.log("Enviando requisição para Cohere:", text)
 
-    const data = await response.json()
-    const embeddings = data.embeddings[0]
+    const response = await cohere.embed({
+      texts: [text],
+      model: "embed-english-v3.0",
+    })
 
-    // Retornar o resultado
+    console.log("Resposta recebida da Cohere:", response.statusCode)
+
     return NextResponse.json({
-      dimensions: embeddings.length,
-      preview: embeddings.slice(0, 5),
+      embedding: response.embeddings[0],
+      dimensions: response.embeddings[0].length,
     })
   } catch (error: any) {
-    console.error("Erro ao testar Cohere:", error)
-    return NextResponse.json({ error: error.message || "Erro ao conectar com a API da Cohere" }, { status: 500 })
+    console.error("Erro na rota /api/test/cohere:", error)
+
+    // Tratamento específico para erros da Cohere
+    if (error.response) {
+      console.error("Erro da API Cohere:", error.response.data)
+      return NextResponse.json(
+        { error: `Erro da API Cohere: ${error.response.data.message || "Erro desconhecido"}` },
+        { status: error.response.status || 500 },
+      )
+    }
+
+    return NextResponse.json(
+      { error: `Erro ao obter resposta: ${error.message || "Erro desconhecido"}` },
+      { status: 500 },
+    )
   }
 }

@@ -1,132 +1,155 @@
 import { Pinecone } from "@pinecone-database/pinecone"
+import { OpenAIEmbeddings } from "langchain/embeddings/openai"
+import type { Document } from "langchain/document"
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
-import { OpenAI } from "openai"
 
-// Configurações específicas para o índice existente
-const PINECONE_INDEX_NAME = "agentesdeconversao"
-const PINECONE_DIMENSION = 1024
-const PINECONE_METRIC = "cosine"
-
-// Inicializar cliente Pinecone
-let pineconeClient: Pinecone | null = null
-
+// Função para obter o cliente Pinecone com tratamento de erros melhorado
 export async function getPineconeClient() {
-  if (!pineconeClient) {
-    pineconeClient = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY!,
-      environment: process.env.PINECONE_ENVIRONMENT!,
-    })
-  }
-  return pineconeClient
-}
-
-// Obter o índice existente
-export async function getPineconeIndex() {
-  const pinecone = await getPineconeClient()
-  return pinecone.index(PINECONE_INDEX_NAME)
-}
-
-// Criar embeddings usando o modelo OpenAI
-export async function createEmbeddingsWithPinecone(texts: string[]) {
-  // Verificar se temos a API key da OpenAI
-  if (!process.env.OPENAI_API_KEY) {
-    // Fallback para a API de inferência do Pinecone se não tivermos a API key da OpenAI
-    const pinecone = await getPineconeClient()
-    try {
-      // Usar a API de inferência do Pinecone para criar embeddings
-      const embeddings = await pinecone.embeddings.embed({
-        model: "llama-text-embed-v2",
-        inputs: texts,
-      })
-      return embeddings
-    } catch (error) {
-      console.error("Erro ao criar embeddings com Pinecone:", error)
-      throw error
-    }
-  }
-
-  // Usar OpenAI para criar embeddings
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: texts,
+    if (!process.env.PINECONE_API_KEY) {
+      throw new Error("PINECONE_API_KEY não está configurada")
+    }
+
+    if (!process.env.PINECONE_ENVIRONMENT) {
+      throw new Error("PINECONE_ENVIRONMENT não está configurada")
+    }
+
+    const pinecone = new Pinecone({
+      apiKey: process.env.PINECONE_API_KEY,
+      environment: process.env.PINECONE_ENVIRONMENT,
     })
 
-    // Extrair embeddings da resposta
-    const embeddings = response.data.map((item) => item.embedding)
-    return embeddings
+    return pinecone
   } catch (error: any) {
-    console.error("Erro ao criar embeddings com OpenAI:", error)
-
-    // Fallback para a API de inferência do Pinecone em caso de erro
-    const pinecone = await getPineconeClient()
-    try {
-      const embeddings = await pinecone.embeddings.embed({
-        model: "llama-text-embed-v2",
-        inputs: texts,
-      })
-      return embeddings
-    } catch (pineconeError) {
-      console.error("Erro ao criar embeddings com Pinecone (fallback):", pineconeError)
-      throw error
-    }
+    console.error("Erro ao inicializar cliente Pinecone:", error)
+    throw new Error(`Falha ao inicializar Pinecone: ${error.message}`)
   }
 }
 
-// Processar documentos e armazená-los no Pinecone usando a API de inferência
-export async function processDocumentsWithPinecone(documents: string[]) {
-  // Dividir documentos em chunks menores
-  const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
-  })
+// Função para consultar o índice Pinecone com tratamento de erros melhorado
+export async function queryPineconeIndex(indexName: string, query: string, topK = 5) {
+  try {
+    const pinecone = await getPineconeClient()
 
-  const docs = await Promise.all(
-    documents.map(async (doc, i) => {
-      const chunks = await textSplitter.splitText(doc)
-      return chunks
-    }),
-  )
+    // Verificar se o índice existe
+    const indexes = await pinecone.listIndexes()
+    if (!indexes.includes(indexName)) {
+      throw new Error(`Índice '${indexName}' não encontrado no Pinecone`)
+    }
 
-  // Flatten array of arrays
-  const flatDocs = docs.flat()
+    const index = pinecone.index(indexName)
 
-  // Obter o índice do Pinecone
-  const index = await getPineconeIndex()
+    // Criar embeddings para a consulta
+    let embeddings
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        throw new Error("OPENAI_API_KEY não está configurada para criar embeddings")
+      }
 
-  // Criar embeddings usando a API de inferência do Pinecone
-  const embeddings = await createEmbeddingsWithPinecone(flatDocs)
+      const embeddingModel = new OpenAIEmbeddings({
+        openAIApiKey: process.env.OPENAI_API_KEY,
+        modelName: "text-embedding-3-small",
+      })
 
-  // Preparar os vetores para upsert
-  const vectors = flatDocs.map((text, i) => ({
-    id: `doc-${Date.now()}-${i}`,
-    values: embeddings[i],
-    metadata: {
-      text: text, // Usar o campo "text" conforme configurado no índice
-      source: `document-${Math.floor(i / (flatDocs.length / documents.length))}`,
-    },
-  }))
+      embeddings = await embeddingModel.embedQuery(query)
+    } catch (error: any) {
+      console.error("Erro ao criar embeddings:", error)
+      throw new Error(`Falha ao criar embeddings: ${error.message}`)
+    }
 
-  // Inserir os vetores no índice
-  await index.upsert(vectors)
+    // Consultar o índice
+    const queryResult = await index.query({
+      vector: embeddings,
+      topK,
+      includeMetadata: true,
+    })
 
-  return flatDocs.length
+    return queryResult
+  } catch (error: any) {
+    console.error("Erro ao consultar índice Pinecone:", error)
+    throw new Error(`Falha ao consultar Pinecone: ${error.message}`)
+  }
 }
 
-// Função para consultar o índice usando a API de inferência
-export async function queryPineconeIndex(query: string, topK = 5) {
-  const index = await getPineconeIndex()
+// Função para processar documentos e armazená-los no Pinecone
+export async function processDocumentsWithPinecone(indexName: string, documents: Document[]) {
+  try {
+    const pinecone = await getPineconeClient()
 
-  // Criar embedding para a consulta
-  const queryEmbeddings = await createEmbeddingsWithPinecone([query])
+    // Verificar se o índice existe
+    const indexes = await pinecone.listIndexes()
+    if (!indexes.includes(indexName)) {
+      throw new Error(`Índice '${indexName}' não encontrado no Pinecone`)
+    }
 
-  // Consultar o índice
-  const queryResponse = await index.query({
-    vector: queryEmbeddings[0],
-    topK,
-    includeMetadata: true,
-  })
+    const index = pinecone.index(indexName)
 
-  return queryResponse.matches
+    // Dividir documentos em chunks menores
+    const textSplitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 1000,
+      chunkOverlap: 200,
+    })
+
+    const chunks = await textSplitter.splitDocuments(documents)
+    console.log(`Dividido em ${chunks.length} chunks`)
+
+    // Criar embeddings para os chunks
+    const vectors = []
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        throw new Error("OPENAI_API_KEY não está configurada para criar embeddings")
+      }
+
+      const embeddingModel = new OpenAIEmbeddings({
+        openAIApiKey: process.env.OPENAI_API_KEY,
+        modelName: "text-embedding-3-small",
+      })
+
+      for (const chunk of chunks) {
+        const embedding = await embeddingModel.embedQuery(chunk.pageContent)
+        vectors.push({
+          id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          values: embedding,
+          metadata: {
+            ...chunk.metadata,
+            text: chunk.pageContent,
+          },
+        })
+      }
+    } catch (error: any) {
+      console.error("Erro ao criar embeddings para documentos:", error)
+      throw new Error(`Falha ao criar embeddings para documentos: ${error.message}`)
+    }
+
+    // Upsert vetores no índice
+    if (vectors.length > 0) {
+      await index.upsert(vectors)
+      console.log(`${vectors.length} vetores inseridos no Pinecone`)
+    }
+
+    return { success: true, count: vectors.length }
+  } catch (error: any) {
+    console.error("Erro ao processar documentos com Pinecone:", error)
+    throw new Error(`Falha ao processar documentos: ${error.message}`)
+  }
+}
+
+// Função para criar embeddings com tratamento de erros melhorado
+export async function createEmbeddingsWithPinecone(text: string) {
+  try {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY não está configurada para criar embeddings")
+    }
+
+    const embeddingModel = new OpenAIEmbeddings({
+      openAIApiKey: process.env.OPENAI_API_KEY,
+      modelName: "text-embedding-3-small",
+    })
+
+    const embedding = await embeddingModel.embedQuery(text)
+    return embedding
+  } catch (error: any) {
+    console.error("Erro ao criar embeddings:", error)
+    throw new Error(`Falha ao criar embeddings: ${error.message}`)
+  }
 }

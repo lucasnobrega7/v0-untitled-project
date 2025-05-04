@@ -84,6 +84,7 @@ export default function EnvChecker() {
                   <li>PINECONE_API_KEY - Para armazenamento vetorial</li>
                   <li>PINECONE_ENVIRONMENT - Para configuração do Pinecone</li>
                   <li>NEON_DATABASE_URL - Para conexão com o banco de dados</li>
+                  <li>NEON_API_KEY - Para gerenciamento do banco de dados via API</li>
                 </ul>
               </div>
             )}

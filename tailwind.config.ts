@@ -20,7 +20,9 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+        primary: ["Iwata Souchou", "serif"],
+        secondary: ["Primus Light", "sans-serif"],
+        sans: ["Primus Light", "Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
