@@ -3,6 +3,40 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export interface Database {
   public: {
     Tables: {
+      notes: {
+        Row: {
+          id: string
+          title: string
+          content: string
+          user_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          content: string
+          user_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          content?: string
+          user_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           id: string
@@ -70,34 +104,32 @@ export interface Database {
       users: {
         Row: {
           id: string
+          email: string
           name: string | null
-          email: string | null
-          emailVerified: string | null
           image: string | null
-          password: string | null
-          createdAt: string | null
-          updatedAt: string | null
+          role: string
+          created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
+          email: string
           name?: string | null
-          email?: string | null
-          emailVerified?: string | null
           image?: string | null
-          password?: string | null
-          createdAt?: string | null
-          updatedAt?: string | null
+          role?: string
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
+          email?: string
           name?: string | null
-          email?: string | null
-          emailVerified?: string | null
           image?: string | null
-          password?: string | null
-          createdAt?: string | null
-          updatedAt?: string | null
+          role?: string
+          created_at?: string
+          updated_at?: string
         }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -137,23 +169,17 @@ export interface Database {
         }
       }
     }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
-</QuickEdit>
-
-Agora, vamos atualizar o arquivo de rota
-do NextAuth para
-usar
-a
-configuração:
-
-```typescriptreact file="app/api/auth/[...nextauth]/route.ts"
-[v0-no-op-code-block-prefix]import NextAuth from "next-auth"
-import { authOptions } from "@/lib/auth"
-
-// Remover o wrapper personalizado que está causando o erro
-// e usar a forma padrão recomendada pelo NextAuth para App Router
-
-const handler = NextAuth(authOptions)
-
-export { handler as GET, handler as POST }

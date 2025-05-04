@@ -120,10 +120,11 @@
     "@pinecone-database/pinecone": "latest",
     "bcryptjs": "latest",
     "@paralleldrive/cuid2": "latest",
-    "@auth/supabase-adapter": "latest",
     "@supabase/auth-helpers-nextjs": "latest",
     "fs": "latest",
-    "path": "latest"
+    "path": "latest",
+    "@supabase/ssr": "latest",
+    "@auth/supabase-adapter": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

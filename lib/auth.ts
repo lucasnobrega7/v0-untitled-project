@@ -176,3 +176,9 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
 }
+
+import { getServerSession as _getServerSession } from "next-auth"
+
+export const getServerSession = async () => {
+  return await _getServerSession(authOptions)
+}
