@@ -147,12 +147,46 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 })
 
+// Tabela de roles
+export const roles = pgTable("roles", {
+  id: varchar("id")
+    .primaryKey()
+    .notNull()
+    .$defaultFn(() => createId()),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+})
+
+// Tabela de associação entre usuários e roles
+export const userRoles = pgTable(
+  "user_roles",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => createId()),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").notNull(), // Valor do enum Role
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => {
+    return {
+      userRoleIdx: uniqueIndex("user_role_idx").on(table.userId, table.role),
+    }
+  },
+)
+
 // Definição de relações
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   agents: many(agents),
   conversations: many(conversations),
+  userRoles: many(userRoles),
 }))
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -201,5 +235,13 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   conversation: one(conversations, {
     fields: [messages.conversationId],
     references: [conversations.id],
+  }),
+}))
+
+// Relações para userRoles
+export const userRolesRelations = relations(userRoles, ({ one }) => ({
+  user: one(users, {
+    fields: [userRoles.userId],
+    references: [users.id],
   }),
 }))

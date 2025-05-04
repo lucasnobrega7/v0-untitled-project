@@ -117,11 +117,13 @@
     "next-auth": "latest",
     "openai": "latest",
     "cohere-ai": "latest",
-    "@paralleldrive/cuid2": "latest",
     "@pinecone-database/pinecone": "latest",
     "bcryptjs": "latest",
-    "react-error-boundary": "latest",
-    "@auth/supabase-adapter": "latest"
+    "@paralleldrive/cuid2": "latest",
+    "@auth/supabase-adapter": "latest",
+    "@supabase/auth-helpers-nextjs": "latest",
+    "fs": "latest",
+    "path": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

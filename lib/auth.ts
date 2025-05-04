@@ -3,22 +3,12 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { SupabaseAdapter } from "@auth/supabase-adapter"
 import { compare } from "bcryptjs"
-import { MOCK_USER_ID, MOCK_USER_NAME } from "./user-context"
+import { Role, ROLE_PERMISSIONS } from "./auth/permissions"
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/supabase"
 
-// Mock da sessão para desenvolvimento sem autenticação
-export const mockSession = {
-  user: {
-    id: MOCK_USER_ID,
-    name: MOCK_USER_NAME,
-    email: "usuario@teste.com",
-    image: "https://ui-avatars.com/api/?name=Usuario+Teste",
-  },
-}
-
-// Função que simula getServerSession sem autenticação real
-export async function getServerSession() {
-  return mockSession
-}
+// Inicializar cliente Supabase para autenticação
+const supabase = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 // Opções de autenticação
 export const authOptions: NextAuthOptions = {
@@ -34,11 +24,22 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/login",
     signOut: "/auth/logout",
     error: "/auth/error",
+    newUser: "/auth/register",
+    verifyRequest: "/auth/verify",
   },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          roles: [Role.Viewer], // Papel padrão para novos usuários
+        }
+      },
     }),
     CredentialsProvider({
       name: "credentials",
@@ -52,31 +53,33 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Usando Supabase para autenticação
-          const { data, error } = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/users`, {
-            headers: {
-              Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-            },
-          }).then((res) => res.json())
+          // Buscar usuário no Supabase
+          const { data: user, error } = await supabase
+            .from("users")
+            .select("*, user_roles(role)")
+            .eq("email", credentials.email)
+            .single()
 
-          if (error) throw error
-
-          const user = data?.find((u: any) => u.email === credentials.email)
-          if (!user || !user.password) {
+          if (error || !user) {
+            console.error("Erro ao buscar usuário:", error)
             return null
           }
 
+          // Verificar senha
           const isPasswordValid = await compare(credentials.password, user.password)
           if (!isPasswordValid) {
             return null
           }
+
+          // Extrair roles do usuário
+          const roles = user.user_roles?.map((ur: any) => ur.role) || [Role.Viewer]
 
           return {
             id: user.id,
             name: user.name || user.email.split("@")[0],
             email: user.email,
             image: user.image,
+            roles,
           }
         } catch (error) {
           console.error("Erro na autorização:", error)
@@ -86,20 +89,88 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async jwt({ token, user, account }) {
+      // Passar roles do usuário para o token
+      if (user) {
+        token.id = user.id
+        token.roles = user.roles || [Role.Viewer]
+      }
+
+      // Se for login com OAuth, sincronizar com Supabase
+      if (account && user) {
+        const { access_token, provider } = account
+
+        if (access_token && provider === "google") {
+          // Criar sessão no Supabase para usuários OAuth
+          await supabase.auth.signInWithIdToken({
+            provider: "google",
+            token: account.id_token!,
+            access_token: access_token,
+          })
+        }
+      }
+
+      return token
+    },
     async session({ token, session }) {
       if (token) {
         session.user.id = token.id as string
         session.user.name = token.name || ""
         session.user.email = token.email || ""
         session.user.image = token.picture || ""
+
+        // Adicionar roles e permissões à sessão
+        const roles = (token.roles || [Role.Viewer]) as Role[]
+        session.user.roles = roles
+
+        // Calcular todas as permissões do usuário com base em seus roles
+        const permissions = new Set<string>()
+        roles.forEach((role) => {
+          ROLE_PERMISSIONS[role]?.forEach((permission) => {
+            permissions.add(permission)
+          })
+        })
+
+        session.user.permissions = Array.from(permissions)
       }
       return session
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
+    async signIn({ user, account }) {
+      // Garantir que o usuário existe no Supabase após autenticação OAuth
+      if (account?.provider === "google" && user.email) {
+        const { data, error } = await supabase.from("users").select("id").eq("email", user.email).single()
+
+        if (error || !data) {
+          // Criar usuário no Supabase se não existir
+          const { error: insertError } = await supabase.from("users").insert({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          })
+
+          if (insertError) {
+            console.error("Erro ao criar usuário no Supabase:", insertError)
+            return false
+          }
+
+          // Adicionar role padrão
+          await supabase.from("user_roles").insert({
+            userId: user.id,
+            role: Role.Viewer,
+          })
+        }
       }
-      return token
+
+      return true
+    },
+  },
+  events: {
+    async signOut({ token }) {
+      // Fazer logout também no Supabase quando o usuário faz logout no NextAuth
+      if (token) {
+        await supabase.auth.signOut()
+      }
     },
   },
   debug: process.env.NODE_ENV === "development",

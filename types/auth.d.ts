@@ -1,4 +1,4 @@
-import type { Role } from "@/lib/auth/permissions"
+import type { Role, Permission } from "@/lib/auth/permissions"
 
 declare module "next-auth" {
   interface Session {
@@ -7,8 +7,8 @@ declare module "next-auth" {
       name: string
       email: string
       image?: string
-      roles?: Role[]
-      permissions?: string[]
+      roles: Role[]
+      permissions: Permission[]
     }
   }
 
@@ -17,13 +17,16 @@ declare module "next-auth" {
     name: string
     email: string
     image?: string
-    roles?: Role[]
+    roles: Role[]
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     id: string
-    roles?: Role[]
+    name?: string
+    email?: string
+    picture?: string
+    roles: Role[]
   }
 }
