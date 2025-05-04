@@ -104,17 +104,4 @@ export const authOptions: NextAuthOptions = {
   },
   debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
-  logger: {
-    error(code, metadata) {
-      console.error(`[Auth] Error: ${code}`, metadata)
-    },
-    warn(code) {
-      console.warn(`[Auth] Warning: ${code}`)
-    },
-    debug(code, metadata) {
-      if (process.env.NODE_ENV === "development") {
-        console.debug(`[Auth] Debug: ${code}`, metadata)
-      }
-    },
-  },
 }

@@ -120,8 +120,8 @@
     "@paralleldrive/cuid2": "latest",
     "@pinecone-database/pinecone": "latest",
     "bcryptjs": "latest",
-    "@auth/supabase-adapter": "latest",
-    "react-error-boundary": "latest"
+    "react-error-boundary": "latest",
+    "@auth/supabase-adapter": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
