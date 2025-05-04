@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { db } from "@/lib/db"
-import { userRoles } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { supabase } from "@/lib/db"
 import { Permission, Role } from "@/lib/auth/permissions"
-import { createId } from "@paralleldrive/cuid2"
+import { v4 as uuidv4 } from "uuid"
 
 // Atualizar roles de um usuário
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
@@ -31,16 +29,26 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
     // Remover roles existentes
-    await db.delete(userRoles).where(eq(userRoles.userId, userId))
+    const { error: deleteError } = await supabase.from("user_roles").delete().eq("user_id", userId)
+
+    if (deleteError) {
+      console.error("Erro ao remover roles existentes:", deleteError)
+      return NextResponse.json({ error: "Erro ao atualizar roles" }, { status: 500 })
+    }
 
     // Adicionar novos roles
     const rolesToInsert = roles.map((role) => ({
-      id: createId(),
-      userId,
+      id: uuidv4(),
+      user_id: userId,
       role,
     }))
 
-    await db.insert(userRoles).values(rolesToInsert)
+    const { error: insertError } = await supabase.from("user_roles").insert(rolesToInsert)
+
+    if (insertError) {
+      console.error("Erro ao inserir novos roles:", insertError)
+      return NextResponse.json({ error: "Erro ao atualizar roles" }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -67,7 +75,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const userId = params.id
 
     // Buscar roles do usuário
-    const userRolesList = await db.select().from(userRoles).where(eq(userRoles.userId, userId))
+    const { data: userRolesList, error } = await supabase.from("user_roles").select().eq("user_id", userId)
+
+    if (error) {
+      console.error("Erro ao buscar roles:", error)
+      return NextResponse.json({ error: "Erro ao buscar roles" }, { status: 500 })
+    }
 
     const roles = userRolesList.map((ur) => ur.role)
 

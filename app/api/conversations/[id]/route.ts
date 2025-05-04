@@ -1,33 +1,40 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "@/lib/user-context"
-import { db } from "@/lib/db"
-import { conversations } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { supabase } from "@/lib/db"
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession()
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+    }
+
     const conversationId = params.id
 
-    const conversationResults = await db.query.conversations.findMany({
-      where: eq(conversations.id, conversationId),
-      with: {
-        messages: {
-          orderBy: (messages, { asc }) => [asc(messages.createdAt)],
-        },
-        agent: true,
-      },
-    })
+    const { data: conversation, error } = await supabase
+      .from("conversations")
+      .select(`
+        *,
+        messages (*),
+        agents (*)
+      `)
+      .eq("id", conversationId)
+      .single()
 
-    const conversation = conversationResults[0]
-
-    if (!conversation) {
+    if (error || !conversation) {
       return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 })
     }
 
     // Verificar se o usuário tem acesso a esta conversa
-    if (conversation.userId !== session.user.id) {
+    if (conversation.user_id !== session.user.id) {
       return NextResponse.json({ error: "Acesso negado" }, { status: 403 })
+    }
+
+    // Ordenar mensagens por data de criação
+    if (conversation.messages) {
+      conversation.messages.sort((a, b) => {
+        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+      })
     }
 
     return NextResponse.json(conversation)

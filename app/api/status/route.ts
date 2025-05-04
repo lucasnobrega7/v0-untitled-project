@@ -1,63 +1,37 @@
 import { NextResponse } from "next/server"
-import { getOpenAIClient } from "@/lib/ai-client"
-import { getPineconeClient } from "@/lib/pinecone-utils"
-import { db } from "@/lib/db"
+import { supabase } from "@/lib/db"
 
 export async function GET() {
-  const services = []
-
-  // Verificar OpenAI
   try {
-    const openai = getOpenAIClient()
-    await openai.models.list()
-    services.push({
-      name: "OpenAI",
-      status: "online",
-      message: "API conectada e funcionando",
-    })
-  } catch (error) {
-    services.push({
-      name: "OpenAI",
-      status: "offline",
-      message: "Erro na conexão com a API",
-    })
-  }
+    // Verificar conexão com o Supabase
+    const { data, error } = await supabase.from("health_check").select().limit(1)
 
-  // Verificar Pinecone
-  try {
-    const pinecone = await getPineconeClient()
-    await pinecone.listIndexes()
-    services.push({
-      name: "Pinecone",
-      status: "online",
-      message: "API conectada e funcionando",
-    })
-  } catch (error) {
-    services.push({
-      name: "Pinecone",
-      status: "offline",
-      message: "Erro na conexão com a API",
-    })
-  }
+    if (error) {
+      console.error("Erro ao verificar status do Supabase:", error)
+      return NextResponse.json(
+        {
+          supabase: {
+            status: "offline",
+            error: error.message,
+          },
+        },
+        { status: 500 },
+      )
+    }
 
-  // Verificar Banco de Dados
-  try {
-    // Tentar executar uma consulta simples
-    await db.query.conversations.findMany({
-      limit: 1,
+    return NextResponse.json({
+      supabase: {
+        status: "online",
+        timestamp: new Date().toISOString(),
+      },
     })
-    services.push({
-      name: "Banco de Dados (Neon)",
-      status: "online",
-      message: "Conexão estabelecida com sucesso",
-    })
-  } catch (error) {
-    services.push({
-      name: "Banco de Dados (Neon)",
-      status: "offline",
-      message: "Erro na conexão com o banco de dados",
-    })
+  } catch (error: any) {
+    console.error("Erro ao verificar status:", error)
+    return NextResponse.json(
+      {
+        error: error.message || "Erro interno do servidor",
+      },
+      { status: 500 },
+    )
   }
-
-  return NextResponse.json({ services })
 }

@@ -1,74 +1,33 @@
 import { NextResponse } from "next/server"
-import { db } from "@/lib/db"
-import { sql } from "drizzle-orm"
-
-export const runtime = "nodejs" // Garantir que rode no ambiente Node.js
+import { checkDatabaseConnection } from "@/lib/db"
 
 export async function GET() {
-  // Verificar se as variáveis de ambiente necessárias estão definidas
-  const databaseUrl = process.env.NEON_NEON_DATABASE_URL || process.env.NEON_NEON_DATABASE_URL
-
-  if (!databaseUrl) {
-    console.error("Erro: Variável de ambiente NEON_DATABASE_URL ou NEON_NEON_DATABASE_URL não está definida")
-    return NextResponse.json(
-      {
-        error: "Configuração de banco de dados ausente",
-        details: "Variável de ambiente NEON_DATABASE_URL ou NEON_NEON_DATABASE_URL não está definida",
-      },
-      { status: 500 },
-    )
-  }
-
   try {
-    console.log("Tentando conectar ao banco de dados...")
+    const result = await checkDatabaseConnection()
 
-    // Verificar a conexão com o banco de dados
-    const result = await db.execute(sql`SELECT NOW() as current_time`)
-
-    console.log("Conexão bem-sucedida, resultado:", result)
-
-    if (!result || !result.rows || result.rows.length === 0) {
-      console.error("Erro: Resultado da consulta está vazio ou mal formatado")
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        message: result.message,
+        timestamp: new Date().toISOString(),
+      })
+    } else {
       return NextResponse.json(
         {
-          error: "Resultado da consulta inválido",
-          details: "A consulta foi executada, mas o resultado está vazio ou mal formatado",
+          success: false,
+          error: result.error,
+          code: result.code,
         },
         { status: 500 },
       )
     }
-
-    return NextResponse.json({
-      success: true,
-      message: "Conexão com o banco de dados estabelecida com sucesso",
-      timestamp: result.rows[0]?.current_time || null,
-      database: {
-        url: "Configurado (valor oculto por segurança)",
-        type: "Neon PostgreSQL",
-      },
-    })
   } catch (error: any) {
-    console.error("Erro ao verificar conexão com o banco de dados:", error)
-
-    // Extrair informações úteis do erro
-    const errorMessage = error.message || "Erro desconhecido"
-    const errorCode = error.code || "UNKNOWN"
-    const errorStack = error.stack || ""
-
-    // Log detalhado para depuração
-    console.error(`
-      Detalhes do erro:
-      - Mensagem: ${errorMessage}
-      - Código: ${errorCode}
-      - Stack: ${errorStack}
-    `)
-
+    console.error("Erro ao verificar conexão com banco de dados:", error)
     return NextResponse.json(
       {
         success: false,
-        error: "Falha na conexão com o banco de dados",
-        details: errorMessage,
-        code: errorCode,
+        error: error.message || "Erro desconhecido",
+        details: "Erro ao executar verificação de conexão",
       },
       { status: 500 },
     )

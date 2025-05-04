@@ -1,50 +1,60 @@
-import { hash } from "bcryptjs"
 import { NextResponse } from "next/server"
-import { db } from "@/lib/db"
-import { users } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { supabase } from "@/lib/db"
+import { v4 as uuidv4 } from "uuid"
+import bcrypt from "bcryptjs"
 
 export async function POST(req: Request) {
   try {
     const { name, email, password } = await req.json()
 
-    // Validação básica
+    // Validar dados
     if (!name || !email || !password) {
-      return NextResponse.json({ message: "Nome, email e senha são obrigatórios" }, { status: 400 })
+      return NextResponse.json({ error: "Dados incompletos" }, { status: 400 })
     }
 
     // Verificar se o email já está em uso
-    const existingUsers = await db.select().from(users).where(eq(users.email, email)).limit(1)
+    const { data: existingUser, error: checkError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .single()
 
-    if (existingUsers.length > 0) {
-      return NextResponse.json({ message: "Este email já está em uso" }, { status: 409 })
+    if (existingUser) {
+      return NextResponse.json({ error: "Email já está em uso" }, { status: 409 })
     }
 
     // Hash da senha
-    const hashedPassword = await hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Criar o usuário
-    const [newUser] = await db
-      .insert(users)
-      .values({
+    // Criar usuário
+    const { data: user, error } = await supabase
+      .from("users")
+      .insert({
+        id: uuidv4(),
         name,
         email,
         password: hashedPassword,
       })
-      .returning()
+      .select()
+      .single()
 
-    // Remover a senha do objeto de resposta
-    const { password: _, ...userWithoutPassword } = newUser
+    if (error) {
+      console.error("Erro ao criar usuário:", error)
+      return NextResponse.json({ error: "Erro ao criar usuário" }, { status: 500 })
+    }
 
-    return NextResponse.json(
-      {
-        message: "Usuário criado com sucesso",
-        user: userWithoutPassword,
+    // O trigger no banco de dados irá adicionar a role padrão e configurações
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
       },
-      { status: 201 },
-    )
-  } catch (error) {
-    console.error("Erro ao registrar usuário:", error)
-    return NextResponse.json({ message: "Erro ao criar usuário" }, { status: 500 })
+    })
+  } catch (error: any) {
+    console.error("Erro no registro:", error)
+    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
   }
 }

@@ -1,25 +1,40 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "@/lib/user-context"
-import { db } from "@/lib/db"
-import { knowledgeBases } from "@/lib/db/schema"
+import { supabase } from "@/lib/db"
+import { v4 as uuidv4 } from "uuid"
 
 export async function GET() {
   try {
     const session = await getServerSession()
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+    }
+
+    // Buscar bases de conhecimento existentes
+    const { data: existingBases, error } = await supabase.from("knowledge_bases").select()
+
+    if (error) {
+      console.error("Erro ao buscar bases de conhecimento:", error)
+      return NextResponse.json({ error: "Erro ao buscar bases de conhecimento" }, { status: 500 })
+    }
 
     // Se não houver bases de conhecimento, criar uma padrão
-    const existingBases = await db.select().from(knowledgeBases)
-
     if (existingBases.length === 0) {
-      // Criar uma base de conhecimento padrão usando o índice existente
-      const [defaultBase] = await db
-        .insert(knowledgeBases)
-        .values({
+      const { data: defaultBase, error: insertError } = await supabase
+        .from("knowledge_bases")
+        .insert({
+          id: uuidv4(),
           name: "Base de Conhecimento Padrão",
           description: "Base de conhecimento padrão usando o índice agentesdeconversao",
-          indexName: "agentesdeconversao",
+          index_name: "agentesdeconversao",
         })
-        .returning()
+        .select()
+        .single()
+
+      if (insertError) {
+        console.error("Erro ao criar base de conhecimento padrão:", insertError)
+        return NextResponse.json({ error: "Erro ao criar base de conhecimento padrão" }, { status: 500 })
+      }
 
       return NextResponse.json([defaultBase])
     }
@@ -34,6 +49,10 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession()
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+    }
+
     const { name, description } = await req.json()
 
     if (!name) {
@@ -43,14 +62,21 @@ export async function POST(req: Request) {
     // Usar o índice existente para todas as bases de conhecimento
     const indexName = "agentesdeconversao"
 
-    const [knowledgeBase] = await db
-      .insert(knowledgeBases)
-      .values({
+    const { data: knowledgeBase, error } = await supabase
+      .from("knowledge_bases")
+      .insert({
+        id: uuidv4(),
         name,
         description,
-        indexName,
+        index_name: indexName,
       })
-      .returning()
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Erro ao criar base de conhecimento:", error)
+      return NextResponse.json({ error: "Erro ao criar base de conhecimento" }, { status: 500 })
+    }
 
     return NextResponse.json(knowledgeBase)
   } catch (error: any) {

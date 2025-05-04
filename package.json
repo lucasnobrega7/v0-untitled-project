@@ -110,7 +110,6 @@
     "pg-native": "latest",
     "@supabase/supabase-js": "latest",
     "drizzle-orm": "latest",
-    "drizzle-kit": "latest",
     "@langchain/openai": "latest",
     "langchain": "latest",
     "framer-motion": "latest",
@@ -118,13 +117,13 @@
     "openai": "latest",
     "cohere-ai": "latest",
     "@pinecone-database/pinecone": "latest",
-    "bcryptjs": "latest",
-    "@paralleldrive/cuid2": "latest",
     "@supabase/auth-helpers-nextjs": "latest",
     "fs": "latest",
     "path": "latest",
     "@supabase/ssr": "latest",
-    "@auth/supabase-adapter": "latest"
+    "uuid": "latest",
+    "bcryptjs": "latest",
+    "crypto": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

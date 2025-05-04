@@ -1,206 +1,114 @@
-import { pgTable, text, timestamp, uniqueIndex, varchar, doublePrecision, integer } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, integer, json } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
-import { createId } from "@paralleldrive/cuid2"
 
-// Tabela de usuários
-export const users = pgTable(
-  "users",
-  {
-    id: varchar("id")
-      .primaryKey()
-      .notNull()
-      .$defaultFn(() => createId()),
-    name: text("name"),
-    email: text("email").unique(),
-    emailVerified: timestamp("email_verified"),
-    image: text("image"),
-    password: text("password"),
-    createdAt: timestamp("created_at").defaultNow(),
-    updatedAt: timestamp("updated_at").defaultNow(),
-  },
-  (table) => {
-    return {
-      emailIdx: uniqueIndex("email_idx").on(table.email),
-    }
-  },
-)
+// Users table
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  name: text("name"),
+  email: text("email").notNull().unique(),
+  emailVerified: timestamp("email_verified", { mode: "date" }),
+  image: text("image"),
+  password: text("password"),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
+})
 
-// Tabela de contas (para autenticação OAuth)
-export const accounts = pgTable(
-  "accounts",
-  {
-    id: varchar("id")
-      .primaryKey()
-      .notNull()
-      .$defaultFn(() => createId()),
-    userId: varchar("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("provider_account_id").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
-    scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
-  },
-  (table) => {
-    return {
-      providerProviderAccountIdKey: uniqueIndex("provider_provider_account_id_key").on(
-        table.provider,
-        table.providerAccountId,
-      ),
-    }
-  },
-)
+// Accounts table (for OAuth)
+export const accounts = pgTable("accounts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  provider: text("provider").notNull(),
+  providerAccountId: text("provider_account_id").notNull(),
+  refreshToken: text("refresh_token"),
+  accessToken: text("access_token"),
+  expiresAt: integer("expires_at"),
+  tokenType: text("token_type"),
+  scope: text("scope"),
+  idToken: text("id_token"),
+  sessionState: text("session_state"),
+})
 
-// Tabela de sessões
+// Sessions table
 export const sessions = pgTable("sessions", {
-  id: varchar("id")
-    .primaryKey()
+  id: text("id").primaryKey(),
+  userId: text("user_id")
     .notNull()
-    .$defaultFn(() => createId()),
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
   sessionToken: text("session_token").notNull().unique(),
-  userId: varchar("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  expires: timestamp("expires").notNull(),
 })
 
-// Tabela de tokens de verificação
-export const verificationTokens = pgTable(
-  "verification_tokens",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull().unique(),
-    expires: timestamp("expires").notNull(),
-  },
-  (table) => {
-    return {
-      identifierTokenKey: uniqueIndex("identifier_token_key").on(table.identifier, table.token),
-    }
-  },
-)
-
-// Tabela de bases de conhecimento
-export const knowledgeBases = pgTable("knowledge_bases", {
-  id: varchar("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => createId()),
-  name: text("name").notNull(),
-  description: text("description"),
-  indexName: text("index_name").notNull().unique(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+// Verification tokens table
+export const verificationTokens = pgTable("verification_tokens", {
+  identifier: text("identifier").notNull(),
+  token: text("token").notNull().unique(),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
 })
 
-// Tabela de agentes
+// Agents table
 export const agents = pgTable("agents", {
-  id: varchar("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => createId()),
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  systemPrompt: text("system_prompt"),
-  modelId: text("model_id"),
-  temperature: doublePrecision("temperature"),
-  userId: varchar("user_id")
+  instructions: text("instructions"),
+  model: text("model").notNull(),
+  temperature: integer("temperature"),
+  userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  knowledgeBaseId: varchar("knowledge_base_id").references(() => knowledgeBases.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
+  isPublic: boolean("is_public").default(false),
+  metadata: json("metadata"),
 })
 
-// Tabela de conversas
+// Knowledge bases table
+export const knowledgeBases = pgTable("knowledge_bases", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
+  isPublic: boolean("is_public").default(false),
+  metadata: json("metadata"),
+})
+
+// Conversations table
 export const conversations = pgTable("conversations", {
-  id: varchar("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => createId()),
-  agentId: varchar("agent_id")
-    .notNull()
-    .references(() => agents.id, { onDelete: "cascade" }),
-  userId: varchar("user_id")
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  agentId: text("agent_id").references(() => agents.id, { onDelete: "cascade" }),
+  userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
+  metadata: json("metadata"),
 })
 
-// Tabela de mensagens
+// Messages table
 export const messages = pgTable("messages", {
-  id: varchar("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => createId()),
-  conversationId: varchar("conversation_id")
-    .notNull()
-    .references(() => conversations.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey(),
   content: text("content").notNull(),
   role: text("role").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-})
-
-// Tabela de roles
-export const roles = pgTable("roles", {
-  id: varchar("id")
-    .primaryKey()
+  conversationId: text("conversation_id")
     .notNull()
-    .$defaultFn(() => createId()),
-  name: text("name").notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+    .references(() => conversations.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  metadata: json("metadata"),
 })
 
-// Tabela de associação entre usuários e roles
-export const userRoles = pgTable(
-  "user_roles",
-  {
-    id: varchar("id")
-      .primaryKey()
-      .notNull()
-      .$defaultFn(() => createId()),
-    userId: varchar("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    role: text("role").notNull(), // Valor do enum Role
-    createdAt: timestamp("created_at").defaultNow(),
-  },
-  (table) => {
-    return {
-      userRoleIdx: uniqueIndex("user_role_idx").on(table.userId, table.role),
-    }
-  },
-)
-
-// Definição de relações
+// Define relations
 export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
-  sessions: many(sessions),
   agents: many(agents),
+  knowledgeBases: many(knowledgeBases),
   conversations: many(conversations),
-  userRoles: many(userRoles),
-}))
-
-export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, {
-    fields: [accounts.userId],
-    references: [users.id],
-  }),
-}))
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-  user: one(users, {
-    fields: [sessions.userId],
-    references: [users.id],
-  }),
 }))
 
 export const agentsRelations = relations(agents, ({ one, many }) => ({
@@ -208,25 +116,24 @@ export const agentsRelations = relations(agents, ({ one, many }) => ({
     fields: [agents.userId],
     references: [users.id],
   }),
-  knowledgeBase: one(knowledgeBases, {
-    fields: [agents.knowledgeBaseId],
-    references: [knowledgeBases.id],
-  }),
   conversations: many(conversations),
 }))
 
-export const knowledgeBasesRelations = relations(knowledgeBases, ({ many }) => ({
-  agents: many(agents),
+export const knowledgeBasesRelations = relations(knowledgeBases, ({ one }) => ({
+  user: one(users, {
+    fields: [knowledgeBases.userId],
+    references: [users.id],
+  }),
 }))
 
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
-  agent: one(agents, {
-    fields: [conversations.agentId],
-    references: [agents.id],
-  }),
   user: one(users, {
     fields: [conversations.userId],
     references: [users.id],
+  }),
+  agent: one(agents, {
+    fields: [conversations.agentId],
+    references: [agents.id],
   }),
   messages: many(messages),
 }))
@@ -235,13 +142,5 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   conversation: one(conversations, {
     fields: [messages.conversationId],
     references: [conversations.id],
-  }),
-}))
-
-// Relações para userRoles
-export const userRolesRelations = relations(userRoles, ({ one }) => ({
-  user: one(users, {
-    fields: [userRoles.userId],
-    references: [users.id],
   }),
 }))

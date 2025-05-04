@@ -1,62 +1,111 @@
 import { NextResponse } from "next/server"
-import { OpenAI } from "openai"
-
-// Garantir que este código só é executado no servidor
-export const runtime = "nodejs" // Forçar o runtime Node.js
+import { getServerSession } from "@/lib/user-context"
+import { supabase } from "@/lib/db"
+import { v4 as uuidv4 } from "uuid"
 
 export async function POST(req: Request) {
   try {
-    // Verificar se a API key está configurada
-    if (!process.env.OPENAI_API_KEY) {
-      console.error("OPENAI_API_KEY não está configurada")
-      return NextResponse.json({ error: "Configuração da API OpenAI não encontrada" }, { status: 500 })
+    const session = await getServerSession()
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
-    const { messages } = await req.json()
+    const { message, conversationId, agentId } = await req.json()
 
-    // Validar o formato dos dados
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json({ error: "Formato de mensagens inválido" }, { status: 400 })
+    if (!message) {
+      return NextResponse.json({ error: "Mensagem não fornecida" }, { status: 400 })
     }
 
-    // Criar o cliente OpenAI apenas no lado do servidor
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      // Não usar dangerouslyAllowBrowser: true, pois estamos garantindo que este código só roda no servidor
+    let conversation
+
+    // Se não tiver conversationId, criar uma nova conversa
+    if (!conversationId) {
+      if (!agentId) {
+        return NextResponse.json({ error: "ID do agente não fornecido" }, { status: 400 })
+      }
+
+      // Verificar se o agente existe
+      const { data: agent, error: agentError } = await supabase.from("agents").select().eq("id", agentId).single()
+
+      if (agentError || !agent) {
+        return NextResponse.json({ error: "Agente não encontrado" }, { status: 404 })
+      }
+
+      // Criar nova conversa
+      const { data: newConversation, error: convError } = await supabase
+        .from("conversations")
+        .insert({
+          id: uuidv4(),
+          agent_id: agentId,
+          user_id: session.user.id,
+        })
+        .select()
+        .single()
+
+      if (convError) {
+        console.error("Erro ao criar conversa:", convError)
+        return NextResponse.json({ error: "Erro ao criar conversa" }, { status: 500 })
+      }
+
+      conversation = newConversation
+    } else {
+      // Buscar conversa existente
+      const { data: existingConversation, error: convError } = await supabase
+        .from("conversations")
+        .select()
+        .eq("id", conversationId)
+        .single()
+
+      if (convError || !existingConversation) {
+        return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 })
+      }
+
+      // Verificar se o usuário tem acesso a esta conversa
+      if (existingConversation.user_id !== session.user.id) {
+        return NextResponse.json({ error: "Acesso negado" }, { status: 403 })
+      }
+
+      conversation = existingConversation
+    }
+
+    // Salvar mensagem do usuário
+    const { error: userMsgError } = await supabase.from("messages").insert({
+      id: uuidv4(),
+      conversation_id: conversation.id,
+      content: message,
+      role: "user",
     })
 
-    console.log("Enviando requisição para OpenAI:", JSON.stringify(messages))
+    if (userMsgError) {
+      console.error("Erro ao salvar mensagem do usuário:", userMsgError)
+      return NextResponse.json({ error: "Erro ao salvar mensagem" }, { status: 500 })
+    }
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: messages.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      temperature: 0.7,
-      max_tokens: 1000,
+    // Aqui você pode adicionar a lógica para gerar a resposta do agente
+    // usando OpenAI, Cohere, ou outro serviço de IA
+
+    // Por enquanto, vamos simular uma resposta
+    const aiResponse = `Esta é uma resposta simulada para: "${message}"`
+
+    // Salvar resposta do agente
+    const { error: aiMsgError } = await supabase.from("messages").insert({
+      id: uuidv4(),
+      conversation_id: conversation.id,
+      content: aiResponse,
+      role: "assistant",
     })
 
-    console.log("Resposta recebida da OpenAI:", JSON.stringify(response.choices[0]))
+    if (aiMsgError) {
+      console.error("Erro ao salvar resposta do agente:", aiMsgError)
+      return NextResponse.json({ error: "Erro ao salvar resposta" }, { status: 500 })
+    }
 
     return NextResponse.json({
-      response: response.choices[0].message.content,
+      conversationId: conversation.id,
+      message: aiResponse,
     })
   } catch (error: any) {
-    console.error("Erro na rota /api/chat:", error)
-
-    // Tratamento específico para erros da OpenAI
-    if (error.response) {
-      console.error("Erro da API OpenAI:", error.response.data)
-      return NextResponse.json(
-        { error: `Erro da API OpenAI: ${error.response.data?.error?.message || "Erro desconhecido"}` },
-        { status: error.response.status || 500 },
-      )
-    }
-
-    return NextResponse.json(
-      { error: `Erro ao obter resposta: ${error.message || "Erro desconhecido"}` },
-      { status: 500 },
-    )
+    console.error("Erro no processamento do chat:", error)
+    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 })
   }
 }

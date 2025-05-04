@@ -3,6 +3,116 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export interface Database {
   public: {
     Tables: {
+      agents: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          system_prompt: string | null
+          model_id: string | null
+          temperature: number | null
+          user_id: string
+          knowledge_base_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          system_prompt?: string | null
+          model_id?: string | null
+          temperature?: number | null
+          user_id: string
+          knowledge_base_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          system_prompt?: string | null
+          model_id?: string | null
+          temperature?: number | null
+          user_id?: string
+          knowledge_base_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      knowledge_bases: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          index_name: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          index_name: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          index_name?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      conversations: {
+        Row: {
+          id: string
+          agent_id: string
+          user_id: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          user_id: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          user_id?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      messages: {
+        Row: {
+          id: string
+          conversation_id: string
+          content: string
+          role: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          content: string
+          role: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          content?: string
+          role?: string
+          created_at?: string | null
+        }
+      }
       notes: {
         Row: {
           id: string
@@ -28,144 +138,74 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notes_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      accounts: {
-        Row: {
-          id: string
-          userId: string
-          type: string
-          provider: string
-          providerAccountId: string
-          refresh_token: string | null
-          access_token: string | null
-          expires_at: number | null
-          token_type: string | null
-          scope: string | null
-          id_token: string | null
-          session_state: string | null
-        }
-        Insert: {
-          id?: string
-          userId: string
-          type: string
-          provider: string
-          providerAccountId: string
-          refresh_token?: string | null
-          access_token?: string | null
-          expires_at?: number | null
-          token_type?: string | null
-          scope?: string | null
-          id_token?: string | null
-          session_state?: string | null
-        }
-        Update: {
-          id?: string
-          userId?: string
-          type?: string
-          provider?: string
-          providerAccountId?: string
-          refresh_token?: string | null
-          access_token?: string | null
-          expires_at?: number | null
-          token_type?: string | null
-          scope?: string | null
-          id_token?: string | null
-          session_state?: string | null
-        }
-      }
-      sessions: {
-        Row: {
-          id: string
-          sessionToken: string
-          userId: string
-          expires: string
-        }
-        Insert: {
-          id?: string
-          sessionToken: string
-          userId: string
-          expires: string
-        }
-        Update: {
-          id?: string
-          sessionToken?: string
-          userId?: string
-          expires?: string
-        }
       }
       users: {
         Row: {
           id: string
-          email: string
           name: string | null
+          email: string | null
+          email_verified: string | null
           image: string | null
-          role: string
-          created_at: string
-          updated_at: string
+          password: string | null
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          email: string
           name?: string | null
+          email?: string | null
+          email_verified?: string | null
           image?: string | null
-          role?: string
-          created_at?: string
-          updated_at?: string
+          password?: string | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          email?: string
           name?: string | null
+          email?: string | null
+          email_verified?: string | null
           image?: string | null
-          role?: string
-          created_at?: string
-          updated_at?: string
+          password?: string | null
+          created_at?: string | null
+          updated_at?: string | null
         }
-        Relationships: []
       }
       user_roles: {
         Row: {
           id: string
-          userId: string
+          user_id: string
           role: string
-          createdAt: string | null
+          created_at: string | null
         }
         Insert: {
           id?: string
-          userId: string
+          user_id: string
           role: string
-          createdAt?: string | null
+          created_at?: string | null
         }
         Update: {
           id?: string
-          userId?: string
+          user_id?: string
           role?: string
-          createdAt?: string | null
+          created_at?: string | null
         }
       }
-      verification_tokens: {
+      health_check: {
         Row: {
-          identifier: string
-          token: string
-          expires: string
+          id: string
+          status: string
+          timestamp: string
         }
         Insert: {
-          identifier: string
-          token: string
-          expires: string
+          id?: string
+          status: string
+          timestamp?: string
         }
         Update: {
-          identifier?: string
-          token?: string
-          expires?: string
+          id?: string
+          status?: string
+          timestamp?: string
         }
       }
     }
