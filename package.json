@@ -126,7 +126,8 @@
     "crypto": "latest",
     "dotenv": "latest",
     "url": "latest",
-    "@auth/supabase-adapter": "latest"
+    "@auth/supabase-adapter": "latest",
+    "groq-sdk": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
