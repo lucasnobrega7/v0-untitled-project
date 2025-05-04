@@ -19,6 +19,7 @@ const requiredEnvVars = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
+  "SUPABASE_JWT_SECRET",
 
   // Banco de dados
   "POSTGRES_HOST",
@@ -26,7 +27,8 @@ const requiredEnvVars = [
   "POSTGRES_DATABASE",
   "POSTGRES_USER",
   "POSTGRES_PASSWORD",
-  "SUPABASE_NEON_NEON_DATABASE_URL",
+  "NEON_NEON_DATABASE_URL",
+  "SUPABASE_DATABASE_URL",
 
   // APIs de IA
   "OPENAI_API_KEY",
@@ -100,6 +102,13 @@ if (process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGR
     console.log("⚠️ AVISO: A variável SUPABASE_DATABASE_URL não corresponde aos valores individuais de conexão.")
     console.log(`   Esperado: ${expectedConnectionString}`)
     console.log(`   Encontrado: ${process.env.SUPABASE_DATABASE_URL}`)
+    console.log("   Isso pode causar problemas de conexão com o banco de dados.\n")
+  }
+
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL !== expectedConnectionString) {
+    console.log("⚠️ AVISO: A variável DATABASE_URL não corresponde aos valores individuais de conexão.")
+    console.log(`   Esperado: ${expectedConnectionString}`)
+    console.log(`   Encontrado: ${process.env.DATABASE_URL}`)
     console.log("   Isso pode causar problemas de conexão com o banco de dados.\n")
   }
 }
