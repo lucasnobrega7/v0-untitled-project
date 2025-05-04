@@ -28,9 +28,16 @@ const pgConfig = {
 }
 
 // String de conexão para o PostgreSQL
+// Prioriza variáveis de ambiente específicas, com fallbacks para construir a string manualmente
 const connectionString =
-  process.env.NEON_NEON_DATABASE_URL ||
+  process.env.NEON_NEON_NEON_DATABASE_URL ||
+  process.env.DATABASE_URL ||
   `postgresql://${pgConfig.username}:${pgConfig.password}@${pgConfig.host}:${pgConfig.port}/${pgConfig.database}`
+
+// Verificar se a string de conexão está definida
+if (!connectionString) {
+  console.error("ERRO: String de conexão com o banco de dados não configurada!")
+}
 
 // Configuração do Drizzle para compatibilidade com código existente
 const client = postgres(connectionString)
@@ -41,7 +48,21 @@ export async function checkDatabaseConnection() {
     // Verificar conexão com o Supabase
     const { data, error } = await supabaseAdmin.from("health_check").select().limit(1)
 
-    if (error) throw error
+    if (error) {
+      // Se a tabela health_check não existir, tenta uma consulta mais genérica
+      if (error.code === "42P01") {
+        // código para "relation does not exist"
+        const { data: userData, error: userError } = await supabaseAdmin.from("users").select().limit(1)
+        if (userError) throw userError
+        return {
+          success: true,
+          timestamp: new Date().toISOString(),
+          message: "Conexão com o Supabase estabelecida com sucesso (tabela users)",
+        }
+      } else {
+        throw error
+      }
+    }
 
     return {
       success: true,
