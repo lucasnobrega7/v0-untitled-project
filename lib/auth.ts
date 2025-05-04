@@ -1,12 +1,9 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import { DrizzleAdapter } from "@auth/drizzle-adapter"
-import { db } from "@/lib/db"
-import { MOCK_USER_ID, MOCK_USER_NAME } from "./user-context"
+import { SupabaseAdapter } from "@auth/supabase-adapter"
 import { compare } from "bcryptjs"
-import { eq } from "drizzle-orm"
-import { users } from "./db/schema"
+import { MOCK_USER_ID, MOCK_USER_NAME } from "./user-context"
 
 // Mock da sessão para desenvolvimento sem autenticação
 export const mockSession = {
@@ -25,7 +22,10 @@ export async function getServerSession() {
 
 // Opções de autenticação
 export const authOptions: NextAuthOptions = {
-  adapter: DrizzleAdapter(db),
+  adapter: SupabaseAdapter({
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  }),
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 dias
@@ -52,22 +52,29 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const result = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1)
-          const user = result[0]
+          // Usando Supabase para autenticação
+          const { data, error } = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/users`, {
+            headers: {
+              Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+            },
+          }).then((res) => res.json())
 
+          if (error) throw error
+
+          const user = data?.find((u: any) => u.email === credentials.email)
           if (!user || !user.password) {
             return null
           }
 
           const isPasswordValid = await compare(credentials.password, user.password)
-
           if (!isPasswordValid) {
             return null
           }
 
           return {
             id: user.id,
-            name: user.name,
+            name: user.name || user.email.split("@")[0],
             email: user.email,
             image: user.image,
           }
@@ -89,34 +96,25 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async jwt({ token, user }) {
-      if (!token.email) {
-        return token
+      if (user) {
+        token.id = user.id
       }
-
-      try {
-        const result = await db.select().from(users).where(eq(users.email, token.email)).limit(1)
-        const dbUser = result[0]
-
-        if (!dbUser) {
-          if (user) {
-            token.id = user.id
-          }
-          return token
-        }
-
-        return {
-          id: dbUser.id,
-          name: dbUser.name,
-          email: dbUser.email,
-          picture: dbUser.image,
-        }
-      } catch (error) {
-        console.error("Erro ao buscar usuário para JWT:", error)
-        // Retorna o token original em caso de erro
-        return token
-      }
+      return token
     },
   },
   debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
+  logger: {
+    error(code, metadata) {
+      console.error(`[Auth] Error: ${code}`, metadata)
+    },
+    warn(code) {
+      console.warn(`[Auth] Warning: ${code}`)
+    },
+    debug(code, metadata) {
+      if (process.env.NODE_ENV === "development") {
+        console.debug(`[Auth] Debug: ${code}`, metadata)
+      }
+    },
+  },
 }
