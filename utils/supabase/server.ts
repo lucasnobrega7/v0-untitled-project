@@ -1,11 +1,9 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/supabase"
 
-export { createClient }
-
-export function createServerSupabaseClient() {
+// Implementar corretamente a função createClient para SSR
+export async function createClient() {
   const cookieStore = cookies()
 
   return createServerClient<Database>(
@@ -25,4 +23,9 @@ export function createServerSupabaseClient() {
       },
     },
   )
+}
+
+// Manter função legada para compatibilidade
+export function createServerSupabaseClient() {
+  return createClient()
 }
