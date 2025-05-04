@@ -108,6 +108,7 @@
     "nodemailer": "latest",
     "ws": "latest",
     "pg-native": "latest",
+    "prisma": "latest",
     "drizzle-orm": "latest",
     "drizzle-kit": "latest",
     "@langchain/openai": "latest",
@@ -117,8 +118,8 @@
     "openai": "latest",
     "cohere-ai": "latest",
     "@paralleldrive/cuid2": "latest",
-    "bcryptjs": "latest",
     "@pinecone-database/pinecone": "latest",
+    "bcryptjs": "latest",
     "@auth/drizzle-adapter": "latest"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 import { Pinecone } from "@pinecone-database/pinecone"
-import { OpenAIEmbeddings } from "langchain/embeddings/openai"
+import { OpenAIEmbeddings } from "@langchain/openai"
 import type { Document } from "langchain/document"
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
 

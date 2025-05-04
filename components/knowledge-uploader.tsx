@@ -5,207 +5,117 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, FileText, LinkIcon } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
+import { Card } from "@/components/ui/card"
+import { Loader2, Upload, FileText, Check, AlertCircle } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 export function KnowledgeUploader() {
+  const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
-  const [text, setText] = useState("")
-  const [url, setUrl] = useState("")
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle")
+  const { toast } = useToast()
 
-  const simulateProgress = () => {
-    setProgress(0)
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          return 100
-        }
-        return prev + 5
-      })
-    }, 200)
-    return interval
-  }
-
-  const handleTextUpload = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (text.trim() === "") return
-
-    setIsUploading(true)
-    setResult(null)
-    const interval = simulateProgress()
-
-    try {
-      const response = await fetch("/api/knowledge/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "text",
-          content: text,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Erro ao fazer upload")
-      }
-
-      const data = await response.json()
-      setResult({
-        success: true,
-        message: `Texto processado com sucesso! ${data.chunks || 0} chunks criados.`,
-      })
-      setText("")
-    } catch (error) {
-      console.error("Erro:", error)
-      setResult({
-        success: false,
-        message: "Erro ao processar o texto. Por favor, tente novamente.",
-      })
-    } finally {
-      clearInterval(interval)
-      setProgress(100)
-      setTimeout(() => {
-        setIsUploading(false)
-      }, 500)
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0])
+      setUploadStatus("idle")
     }
   }
 
-  const handleUrlUpload = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (url.trim() === "") return
+  const handleUpload = async () => {
+    if (!file) return
 
     setIsUploading(true)
-    setResult(null)
-    const interval = simulateProgress()
+    setUploadStatus("idle")
 
     try {
+      const formData = new FormData()
+      formData.append("file", file)
+
       const response = await fetch("/api/knowledge/upload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "url",
-          content: url,
-        }),
+        body: formData,
       })
 
       if (!response.ok) {
-        throw new Error("Erro ao fazer upload")
+        throw new Error("Falha ao fazer upload do arquivo")
       }
 
       const data = await response.json()
-      setResult({
-        success: true,
-        message: `URL processada com sucesso! ${data.chunks || 0} chunks criados.`,
+
+      toast({
+        title: "Upload concluído",
+        description: "O documento foi adicionado à base de conhecimento com sucesso.",
       })
-      setUrl("")
+
+      setUploadStatus("success")
     } catch (error) {
-      console.error("Erro:", error)
-      setResult({
-        success: false,
-        message: "Erro ao processar a URL. Por favor, tente novamente.",
+      console.error("Erro no upload:", error)
+
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível adicionar o documento à base de conhecimento.",
+        variant: "destructive",
       })
+
+      setUploadStatus("error")
     } finally {
-      clearInterval(interval)
-      setProgress(100)
-      setTimeout(() => {
-        setIsUploading(false)
-      }, 500)
+      setIsUploading(false)
     }
   }
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground mb-4">
-        Adicione conhecimento personalizado para que o assistente possa responder com base nessas informações.
-      </p>
+      <div className="text-sm text-muted-foreground mb-4">
+        Faça upload de documentos para enriquecer a base de conhecimento do assistente. Formatos suportados: PDF, DOCX,
+        TXT.
+      </div>
 
-      {isUploading && (
-        <div className="space-y-2 my-4">
-          <Progress value={progress} className="h-2" />
-          <p className="text-xs text-center text-muted-foreground">Processando... {progress}%</p>
-        </div>
-      )}
+      <div className="grid gap-4">
+        <Card className="p-4 border-dashed border-2 flex flex-col items-center justify-center text-center">
+          {file ? (
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4" />
+              <span className="font-medium">{file.name}</span>
+              <span className="text-muted-foreground">({(file.size / 1024).toFixed(2)} KB)</span>
+            </div>
+          ) : (
+            <div className="py-8 flex flex-col items-center justify-center text-muted-foreground">
+              <Upload className="h-8 w-8 mb-2" />
+              <p>Arraste um arquivo ou clique para selecionar</p>
+            </div>
+          )}
+          <Input
+            type="file"
+            onChange={handleFileChange}
+            accept=".pdf,.docx,.txt"
+            className={file ? "hidden" : "absolute inset-0 opacity-0 cursor-pointer"}
+          />
+        </Card>
 
-      {result && (
-        <div
-          className={`p-4 rounded-md ${
-            result.success ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
-          } mb-4`}
-        >
-          {result.message}
-        </div>
-      )}
-
-      <Tabs defaultValue="text">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="text">Texto</TabsTrigger>
-          <TabsTrigger value="url">URL</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="text" className="space-y-4 mt-4">
-          <form onSubmit={handleTextUpload}>
-            <Textarea
-              placeholder="Cole seu texto aqui..."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              disabled={isUploading}
-              className="min-h-[200px]"
-            />
-            <Button type="submit" className="w-full mt-4" disabled={isUploading || text.trim() === ""}>
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processando
-                </>
-              ) : (
-                <>
-                  <FileText className="mr-2 h-4 w-4" /> Processar Texto
-                </>
-              )}
-            </Button>
-          </form>
-        </TabsContent>
-
-        <TabsContent value="url" className="space-y-4 mt-4">
-          <form onSubmit={handleUrlUpload}>
-            <Input
-              type="url"
-              placeholder="https://exemplo.com/pagina"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              disabled={isUploading}
-            />
-            <Button type="submit" className="w-full mt-4" disabled={isUploading || url.trim() === ""}>
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processando
-                </>
-              ) : (
-                <>
-                  <LinkIcon className="mr-2 h-4 w-4" /> Processar URL
-                </>
-              )}
-            </Button>
-          </form>
-        </TabsContent>
-      </Tabs>
-
-      <div className="mt-8">
-        <h3 className="text-sm font-medium mb-2">Exemplos de conhecimento que você pode adicionar:</h3>
-        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-          <li>Documentação de produtos</li>
-          <li>FAQs e artigos de suporte</li>
-          <li>Políticas e procedimentos internos</li>
-          <li>Descrições de produtos ou serviços</li>
-          <li>Artigos técnicos ou científicos</li>
-        </ul>
+        <Button onClick={handleUpload} disabled={!file || isUploading} className="w-full">
+          {isUploading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Enviando...
+            </>
+          ) : uploadStatus === "success" ? (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              Enviado com sucesso
+            </>
+          ) : uploadStatus === "error" ? (
+            <>
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Tentar novamente
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4 mr-2" />
+              Enviar documento
+            </>
+          )}
+        </Button>
       </div>
     </div>
   )

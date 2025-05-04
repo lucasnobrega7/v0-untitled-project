@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Send, Database } from "lucide-react"
 import { KnowledgeUploader } from "./knowledge-uploader"
 import { ApiStatus } from "./api-status"
+import { useToast } from "@/components/ui/use-toast"
 
 type Message = {
   role: "user" | "assistant"
@@ -26,6 +27,7 @@ export function ChatInterface() {
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,19 +54,26 @@ export function ChatInterface() {
       })
 
       if (!response.ok) {
-        throw new Error("Erro ao obter resposta")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Erro ao obter resposta")
       }
 
       const data = await response.json()
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: data.response,
+        content: data.response || "Não foi possível gerar uma resposta. Por favor, tente novamente.",
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro:", error)
+
+      toast({
+        title: "Erro na comunicação",
+        description: error.message || "Ocorreu um erro ao processar sua mensagem",
+        variant: "destructive",
+      })
 
       const errorMessage: Message = {
         role: "assistant",
@@ -97,7 +106,7 @@ export function ChatInterface() {
                   <div className="flex items-start gap-3 max-w-[80%]">
                     {message.role === "assistant" && (
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src="/abstract-ai-network.png" />
+                        <AvatarImage src="/abstract-ai-network.png" alt="AI" />
                         <AvatarFallback>AI</AvatarFallback>
                       </Avatar>
                     )}
@@ -110,7 +119,7 @@ export function ChatInterface() {
                     </div>
                     {message.role === "user" && (
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src="/abstract-geometric-shapes.png" />
+                        <AvatarImage src="/abstract-geometric-shapes.png" alt="User" />
                         <AvatarFallback>U</AvatarFallback>
                       </Avatar>
                     )}
@@ -121,7 +130,7 @@ export function ChatInterface() {
                 <div className="flex justify-start">
                   <div className="flex items-start gap-3 max-w-[80%]">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/abstract-ai-network.png" />
+                      <AvatarImage src="/abstract-ai-network.png" alt="AI" />
                       <AvatarFallback>AI</AvatarFallback>
                     </Avatar>
                     <div className="rounded-lg px-4 py-2 bg-primary text-primary-foreground">
