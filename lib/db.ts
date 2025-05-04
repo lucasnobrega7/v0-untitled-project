@@ -27,10 +27,10 @@ const pgConfig = {
   password: process.env.POSTGRES_PASSWORD,
 }
 
-// String de conexão para o PostgreSQL
+// String de conexão para o PostgreSQL do Supabase
 // Prioriza variáveis de ambiente específicas, com fallbacks para construir a string manualmente
 const connectionString =
-  process.env.NEON_NEON_NEON_DATABASE_URL ||
+  process.env.SUPABASE_NEON_NEON_DATABASE_URL ||
   process.env.DATABASE_URL ||
   `postgresql://${pgConfig.username}:${pgConfig.password}@${pgConfig.host}:${pgConfig.port}/${pgConfig.database}`
 

@@ -26,21 +26,36 @@ const requiredEnvVars = [
   "POSTGRES_DATABASE",
   "POSTGRES_USER",
   "POSTGRES_PASSWORD",
-  "NEON_NEON_NEON_DATABASE_URL",
+  "SUPABASE_NEON_NEON_DATABASE_URL",
 
   // APIs de IA
   "OPENAI_API_KEY",
 ]
 
+// Valores esperados para algumas variáveis (para verificação)
+const expectedValues = {
+  POSTGRES_HOST: "db.cdttnoomvugputkweazg.supabase.co",
+  POSTGRES_PORT: "5432",
+  POSTGRES_DATABASE: "postgres",
+  POSTGRES_USER: "postgres",
+  NEXT_PUBLIC_SUPABASE_URL: "https://cdttnoomvugputkweazg.supabase.co",
+}
+
 // Verificar cada variável de ambiente
 const missingVars: string[] = []
 const configuredVars: string[] = []
+const incorrectVars: string[] = []
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
     missingVars.push(envVar)
   } else {
     configuredVars.push(envVar)
+
+    // Verificar se o valor corresponde ao esperado (se houver um valor esperado)
+    if (expectedValues[envVar] && process.env[envVar] !== expectedValues[envVar]) {
+      incorrectVars.push(envVar)
+    }
   }
 }
 
@@ -52,6 +67,14 @@ if (missingVars.length === 0) {
 } else {
   console.log(`❌ Faltam ${missingVars.length} variáveis de ambiente:\n`)
   missingVars.forEach((v) => console.log(`   - ${v}`))
+  console.log("\n")
+}
+
+if (incorrectVars.length > 0) {
+  console.log(`⚠️ ${incorrectVars.length} variáveis têm valores diferentes do esperado:\n`)
+  incorrectVars.forEach((v) =>
+    console.log(`   - ${v}: esperado "${expectedValues[v]}", encontrado "${process.env[v]}"`),
+  )
   console.log("\n")
 }
 
@@ -73,8 +96,10 @@ console.log("\n")
 if (process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD) {
   const expectedConnectionString = `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || "5432"}/${process.env.POSTGRES_DATABASE || "postgres"}`
 
-  if (process.env.NEON_DATABASE_URL && process.env.NEON_DATABASE_URL !== expectedConnectionString) {
-    console.log("⚠️ AVISO: A variável NEON_DATABASE_URL não corresponde aos valores individuais de conexão.")
+  if (process.env.SUPABASE_DATABASE_URL && process.env.SUPABASE_DATABASE_URL !== expectedConnectionString) {
+    console.log("⚠️ AVISO: A variável SUPABASE_DATABASE_URL não corresponde aos valores individuais de conexão.")
+    console.log(`   Esperado: ${expectedConnectionString}`)
+    console.log(`   Encontrado: ${process.env.SUPABASE_DATABASE_URL}`)
     console.log("   Isso pode causar problemas de conexão com o banco de dados.\n")
   }
 }

@@ -20,19 +20,6 @@ export async function GET() {
           ? "Configuração do Pinecone completa"
           : "Configuração do Pinecone incompleta",
     },
-    {
-      name: "Neon Database",
-      status: process.env.NEON_DATABASE_URL ? "success" : "error",
-      message: process.env.NEON_DATABASE_URL
-        ? "URL do banco de dados Neon configurada"
-        : "URL do banco de dados Neon não encontrada",
-    },
-    {
-      name: "Neon API",
-      status: process.env.NEON_API_KEY ? "success" : "error",
-      message: process.env.NEON_API_KEY ? "API Key do Neon configurada" : "API Key do Neon não encontrada",
-    },
   ]
-
   return NextResponse.json({ variables })
 }
