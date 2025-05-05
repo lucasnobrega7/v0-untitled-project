@@ -1,16 +1,22 @@
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
-import { AuthProvider } from "@/components/auth-provider"
-import "./globals.css"
-import "./fonts.css"
+import "@/app/globals.css"
+import { Inter } from "next/font/google"
+import type { Metadata } from "next"
 
-export const metadata = {
+// Add these imports at the top
+import { ClerkProvider } from "@clerk/nextjs"
+
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata: Metadata = {
   title: "Agentes de Conversão",
-  description: "Plataforma de agentes conversacionais para conversão de leads",
+  description: "A platform for conversion optimization",
     generator: 'v0.dev'
 }
 
+// Update the RootLayout function to wrap children with ClerkProvider
 export default function RootLayout({
   children,
 }: {
@@ -18,13 +24,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className="font-secondary antialiased">
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <body className={inter.className}>
+        <ClerkProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             {children}
             <Toaster />
           </ThemeProvider>
-        </AuthProvider>
+        </ClerkProvider>
       </body>
     </html>
   )
