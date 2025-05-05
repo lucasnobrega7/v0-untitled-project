@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { getToken } from "next-auth/jwt"
 
 // Define public routes that don't require authentication
 const publicRoutes = ["/", "/login", "/signup", "/auth/forgot-password", "/auth/reset-password", "/auth/error"]
 
 // Define routes that should be completely skipped by middleware
-const skipMiddlewareRoutes = ["/api/auth", "/api/debug-session", "/api/health", "/_next", "/favicon.ico"]
+const skipMiddlewareRoutes = ["/api/auth", "/api/debug-session", "/api/health"]
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -14,6 +13,8 @@ export async function middleware(request: NextRequest) {
   // Skip middleware for NextAuth routes and static assets
   if (
     skipMiddlewareRoutes.some((route) => pathname.startsWith(route)) ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/public") ||
     pathname.match(/\.(ico|png|jpg|jpeg|svg|css|js)$/)
   ) {
     return NextResponse.next()
@@ -26,37 +27,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check if the path is an API route
-  const isApiRoute = pathname.startsWith("/api/")
+  // For protected routes, redirect to login if no auth cookie exists
+  // This avoids using getToken() which relies on crypto
+  const authCookie =
+    request.cookies.get("next-auth.session-token") || request.cookies.get("__Secure-next-auth.session-token")
 
-  // Verify authentication token
-  let token
-  try {
-    token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    })
-  } catch (error) {
-    console.error("Error getting token in middleware:", error)
-
+  if (!authCookie) {
     // For API routes, return 401 Unauthorized
-    if (isApiRoute) {
-      return new NextResponse(JSON.stringify({ error: "Authentication error" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-
-    // For other routes, redirect to login with error
-    const url = new URL("/login", request.url)
-    url.searchParams.set("error", "AuthenticationError")
-    return NextResponse.redirect(url)
-  }
-
-  // If not authenticated and trying to access protected route or API
-  if (!token) {
-    // For API routes, return 401 Unauthorized
-    if (isApiRoute) {
+    if (pathname.startsWith("/api/")) {
       return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
@@ -74,5 +52,8 @@ export async function middleware(request: NextRequest) {
 
 // Configure the matcher for the middleware
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // Apply to all paths except static assets and auth routes
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 }

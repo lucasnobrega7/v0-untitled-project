@@ -144,7 +144,11 @@
     "util": "latest",
     "@supabase/ssr": "latest",
     "@vercel/analytics": "latest",
-    "@vercel/speed-insights": "latest"
+    "@vercel/speed-insights": "latest",
+    "ai": "latest",
+    "@ai-sdk/openai": "latest",
+    "@upstash/redis": "latest",
+    "jose": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

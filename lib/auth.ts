@@ -10,6 +10,9 @@ import type { Role } from "@/lib/auth/permissions"
 // Export getServerSession
 export const getServerSession = () => nextAuthGetServerSession(authOptions)
 
+// Export runtime configuration
+export const runtime = "nodejs" // Ensure this runs in Node.js environment
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
