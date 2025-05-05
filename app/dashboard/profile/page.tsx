@@ -1,22 +1,13 @@
-import { AuthCheck } from "@/components/auth/auth-check"
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { ProfileForm } from "@/components/dashboard/profile-form"
-import { getServerSession } from "@/lib/auth"
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
+import { ProfilePageContainer } from "@/features/profile/containers/profile-page-container"
 
-export default async function ProfilePage() {
-  const session = await getServerSession()
+export default function ProfilePage() {
+  const { userId } = auth()
 
-  return (
-    <AuthCheck>
-      <DashboardLayout>
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Perfil do Usuário</h1>
+  if (!userId) {
+    redirect("/sign-in")
+  }
 
-          <div className="bg-gray-800 rounded-lg p-6">
-            <ProfileForm user={session?.user} />
-          </div>
-        </div>
-      </DashboardLayout>
-    </AuthCheck>
-  )
+  return <ProfilePageContainer />
 }
