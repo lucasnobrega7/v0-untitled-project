@@ -1,9 +1,9 @@
-import { pgTable, text, timestamp, boolean, integer, json } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, integer, json, uuid } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
 // Users table
 export const users = pgTable("users", {
-  id: text("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: text("name"),
   email: text("email").notNull().unique(),
   emailVerified: timestamp("email_verified", { mode: "date" }),
@@ -13,10 +13,34 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
 })
 
+// User roles table
+export const userRoles = pgTable("user_roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+})
+
+// User settings table
+export const userSettings = pgTable("user_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  theme: text("theme").default("dark"),
+  language: text("language").default("pt-BR"),
+  notificationsEnabled: boolean("notifications_enabled").default(true),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
+})
+
 // Accounts table (for OAuth)
 export const accounts = pgTable("accounts", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   type: text("type").notNull(),
@@ -33,8 +57,8 @@ export const accounts = pgTable("accounts", {
 
 // Sessions table
 export const sessions = pgTable("sessions", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires", { mode: "date" }).notNull(),
@@ -48,67 +72,145 @@ export const verificationTokens = pgTable("verification_tokens", {
   expires: timestamp("expires", { mode: "date" }).notNull(),
 })
 
-// Agents table
-export const agents = pgTable("agents", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  instructions: text("instructions"),
-  model: text("model").notNull(),
-  temperature: integer("temperature"),
-  userId: text("user_id")
+// API keys table
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  key: text("key").notNull().unique(),
+  expiresAt: timestamp("expires_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
-  isPublic: boolean("is_public").default(false),
-  metadata: json("metadata"),
+  lastUsed: timestamp("last_used", { mode: "date" }),
 })
 
 // Knowledge bases table
 export const knowledgeBases = pgTable("knowledge_bases", {
-  id: text("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description"),
-  userId: text("user_id")
+  indexName: text("index_name").notNull(),
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
-  isPublic: boolean("is_public").default(false),
+})
+
+// Documents table
+export const documents = pgTable("documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  knowledgeBaseId: uuid("knowledge_base_id")
+    .notNull()
+    .references(() => knowledgeBases.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  content: text("content").notNull(),
   metadata: json("metadata"),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
+})
+
+// Agents table
+export const agents = pgTable("agents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  systemPrompt: text("system_prompt"),
+  modelId: text("model_id").notNull(),
+  temperature: integer("temperature"),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  knowledgeBaseId: uuid("knowledge_base_id").references(() => knowledgeBases.id),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
 })
 
 // Conversations table
 export const conversations = pgTable("conversations", {
-  id: text("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
-  agentId: text("agent_id").references(() => agents.id, { onDelete: "cascade" }),
-  userId: text("user_id")
+  agentId: uuid("agent_id").references(() => agents.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
-  metadata: json("metadata"),
 })
 
 // Messages table
 export const messages = pgTable("messages", {
-  id: text("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   content: text("content").notNull(),
   role: text("role").notNull(),
-  conversationId: text("conversation_id")
+  conversationId: uuid("conversation_id")
     .notNull()
     .references(() => conversations.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
-  metadata: json("metadata"),
 })
 
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(accounts),
+  sessions: many(sessions),
+  userRoles: many(userRoles),
+  userSettings: many(userSettings),
+  apiKeys: many(apiKeys),
   agents: many(agents),
   knowledgeBases: many(knowledgeBases),
   conversations: many(conversations),
+}))
+
+export const userRolesRelations = relations(userRoles, ({ one }) => ({
+  user: one(users, {
+    fields: [userRoles.userId],
+    references: [users.id],
+  }),
+}))
+
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+  user: one(users, {
+    fields: [userSettings.userId],
+    references: [users.id],
+  }),
+}))
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}))
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}))
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  user: one(users, {
+    fields: [apiKeys.userId],
+    references: [users.id],
+  }),
+}))
+
+export const knowledgeBasesRelations = relations(knowledgeBases, ({ one, many }) => ({
+  user: one(users, {
+    fields: [knowledgeBases.userId],
+    references: [users.id],
+  }),
+  documents: many(documents),
+  agents: many(agents),
+}))
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  knowledgeBase: one(knowledgeBases, {
+    fields: [documents.knowledgeBaseId],
+    references: [knowledgeBases.id],
+  }),
 }))
 
 export const agentsRelations = relations(agents, ({ one, many }) => ({
@@ -116,14 +218,11 @@ export const agentsRelations = relations(agents, ({ one, many }) => ({
     fields: [agents.userId],
     references: [users.id],
   }),
-  conversations: many(conversations),
-}))
-
-export const knowledgeBasesRelations = relations(knowledgeBases, ({ one }) => ({
-  user: one(users, {
-    fields: [knowledgeBases.userId],
-    references: [users.id],
+  knowledgeBase: one(knowledgeBases, {
+    fields: [agents.knowledgeBaseId],
+    references: [knowledgeBases.id],
   }),
+  conversations: many(conversations),
 }))
 
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({

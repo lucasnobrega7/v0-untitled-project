@@ -2,55 +2,77 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
-export async function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname
+// Define public routes that don't require authentication
+const publicRoutes = ["/", "/login", "/signup", "/auth/forgot-password", "/auth/reset-password", "/auth/error"]
 
-  // Ignorar rotas públicas e estáticas
+// Define routes that should be completely skipped by middleware
+const skipMiddlewareRoutes = ["/api/auth", "/api/debug-session", "/api/health", "/_next", "/favicon.ico"]
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Skip middleware for NextAuth routes and static assets
   if (
-    path.startsWith("/_next") ||
-    path.startsWith("/api/auth") ||
-    path === "/" ||
-    path === "/login" ||
-    path === "/signup" ||
-    path === "/reset-password" ||
-    path.startsWith("/public") ||
-    path.match(/\.(ico|png|jpg|jpeg|svg|css|js)$/)
+    skipMiddlewareRoutes.some((route) => pathname.startsWith(route)) ||
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|css|js)$/)
   ) {
     return NextResponse.next()
   }
 
-  // Verificar token de autenticação
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  })
+  // Check if the path is a public route
+  const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
 
-  // Se não estiver autenticado, redirecionar para login
+  if (isPublicRoute) {
+    return NextResponse.next()
+  }
+
+  // Check if the path is an API route
+  const isApiRoute = pathname.startsWith("/api/")
+
+  // Verify authentication token
+  let token
+  try {
+    token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
+  } catch (error) {
+    console.error("Error getting token in middleware:", error)
+
+    // For API routes, return 401 Unauthorized
+    if (isApiRoute) {
+      return new NextResponse(JSON.stringify({ error: "Authentication error" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
+    // For other routes, redirect to login with error
+    const url = new URL("/login", request.url)
+    url.searchParams.set("error", "AuthenticationError")
+    return NextResponse.redirect(url)
+  }
+
+  // If not authenticated and trying to access protected route or API
   if (!token) {
+    // For API routes, return 401 Unauthorized
+    if (isApiRoute) {
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
+    // For other routes, redirect to login
     const url = new URL("/login", request.url)
     url.searchParams.set("callbackUrl", encodeURI(request.url))
     return NextResponse.redirect(url)
   }
 
-  // Verificar se o usuário completou o onboarding
-  const onboardingCompleted = token.onboardingCompleted === true
-
-  // Se o usuário está autenticado mas não completou o onboarding
-  // e está tentando acessar o dashboard, redirecionar para onboarding
-  if (!onboardingCompleted && path.startsWith("/dashboard") && !path.startsWith("/onboarding")) {
-    return NextResponse.redirect(new URL("/onboarding", request.url))
-  }
-
-  // Se o usuário já completou o onboarding e está tentando acessar o onboarding,
-  // redirecionar para o dashboard
-  if (onboardingCompleted && path.startsWith("/onboarding")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
-  }
-
   return NextResponse.next()
 }
 
-// Configurar o matcher para aplicar o middleware em todas as rotas
+// Configure the matcher for the middleware
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 }

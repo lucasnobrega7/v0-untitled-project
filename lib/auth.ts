@@ -1,18 +1,37 @@
-import type { NextAuthOptions } from "next-auth"
+import type { NextAuthOptions, Session } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { SupabaseAdapter } from "@auth/supabase-adapter"
-import { getServerSession as nextAuthGetServerSession } from "next-auth"
+import { getServerSession as nextAuthGetServerSession } from "next-auth/next"
 import bcrypt from "bcryptjs"
+import { createClient } from "@/utils/supabase/server"
+import type { Role } from "@/lib/auth/permissions"
 
 // Export getServerSession
-export const getServerSession = nextAuthGetServerSession
+export const getServerSession = () => nextAuthGetServerSession(authOptions)
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+      // Add profile callback to ensure we have all necessary data
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name || profile.login,
+          email: profile.email,
+          image: profile.picture,
+          roles: ["user"], // Assign default role
+        }
+      },
     }),
     CredentialsProvider({
       name: "credentials",
@@ -22,69 +41,54 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Credenciais inválidas")
+          return null // Return null instead of throwing
         }
 
         try {
-          // Usar o adaptador do Supabase para buscar o usuário
-          const { data: user, error } = await fetch(
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(credentials.email)}`,
-            {
-              headers: {
-                apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""}`,
-                "Content-Type": "application/json",
-                Prefer: "return=representation",
-              },
-            },
-          )
-            .then((res) => res.json())
-            .then((data) => ({ data: data[0] || null, error: null }))
-            .catch((error) => ({ data: null, error }))
+          const supabase = createClient()
+
+          // Fetch user from Supabase
+          const { data: user, error } = await supabase.from("users").select("*").eq("email", credentials.email).single()
 
           if (error || !user) {
-            console.error("Erro ao buscar usuário:", error)
-            throw new Error("Usuário não encontrado")
+            console.error("Error fetching user:", error)
+            return null // Return null instead of throwing
           }
 
-          // Verificar senha
+          // Verify password
           if (!user.password) {
-            throw new Error("Conta não configurada para login com senha")
+            return null // Return null instead of throwing
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
 
           if (!isPasswordValid) {
-            throw new Error("Senha incorreta")
+            return null // Return null instead of throwing
           }
 
-          // Buscar roles do usuário
-          const { data: userRoles } = await fetch(
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${user.id}`,
-            {
-              headers: {
-                apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""}`,
-                "Content-Type": "application/json",
-              },
-            },
-          )
-            .then((res) => res.json())
-            .then((data) => ({ data: data || [] }))
-            .catch((error) => ({ data: [] }))
+          // Fetch user roles
+          const { data: userRolesList, error: rolesError } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
 
-          const roles = userRoles?.map((ur: any) => ur.role) || []
+          if (rolesError) {
+            console.error("Error fetching roles:", rolesError)
+            // Don't fail login if roles can't be fetched
+          }
+
+          const roles = userRolesList?.map((ur) => ur.role) || ["user"]
 
           return {
             id: user.id,
-            name: user.name,
+            name: user.name || "",
             email: user.email,
-            image: user.image,
+            image: user.image || "",
             roles: roles,
           }
         } catch (error) {
-          console.error("Erro na autenticação:", error)
-          throw new Error("Falha na autenticação")
+          console.error("Authentication error:", error)
+          return null // Return null instead of throwing
         }
       },
     }),
@@ -93,31 +97,108 @@ export const authOptions: NextAuthOptions = {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
     secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
   }),
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   callbacks: {
-    async jwt({ token, user, account }) {
-      // Adicionar dados do usuário ao token
-      if (user) {
-        token.id = user.id
-        token.roles = user.roles || []
-      }
+    async jwt({ token, user, account, profile }) {
+      try {
+        // Include account and profile for access to more data
+        if (user) {
+          token.id = user.id
+          token.roles = user.roles || ["user"]
 
-      return token
-    },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.roles = token.roles as string[]
+          // Check if it's a Google login and ensure we have an ID
+          if (account?.provider === "google" && !token.id && profile?.sub) {
+            token.id = profile.sub
+          }
+        }
+        return token
+      } catch (error) {
+        console.error("JWT callback error:", error)
+        return token // Return the token as is in case of error
       }
-      return session
+    },
+    async session({ session, token }: { session: Session; token: any }) {
+      try {
+        if (token && session.user) {
+          session.user.id = token.id as string
+          session.user.roles = (token.roles as Role[]) || ["user"] // Ensure there's always at least the "user" role
+          session.user.permissions = []
+        }
+        return session
+      } catch (error) {
+        console.error("Session callback error:", error)
+        return session // Return the session as is in case of error
+      }
+    },
+    async signIn({ user, account, profile }) {
+      try {
+        // Ensure user is created/updated in Supabase after Google login
+        if (account?.provider === "google" && user.email) {
+          try {
+            const supabase = createClient()
+
+            // Check if user already exists
+            const { data: existingUser } = await supabase.from("users").select("id").eq("email", user.email).single()
+
+            if (!existingUser) {
+              // Create user if doesn't exist
+              await supabase.from("users").insert({
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                image: user.image,
+              })
+
+              // Add default role
+              await supabase.from("user_roles").insert({
+                user_id: user.id,
+                role: "user",
+              })
+            }
+          } catch (error) {
+            console.error("Error syncing user with Supabase:", error)
+            // Don't fail login if sync fails
+          }
+        }
+        return true
+      } catch (error) {
+        console.error("SignIn callback error:", error)
+        return false // Return false in case of error
+      }
+    },
+    async redirect({ url, baseUrl }) {
+      try {
+        // Allow relative callback URLs
+        if (url.startsWith("/")) return `${baseUrl}${url}`
+        // Allow callback URLs on the same domain
+        else if (new URL(url).origin === baseUrl) return url
+        return baseUrl
+      } catch (error) {
+        console.error("Redirect callback error:", error)
+        return baseUrl // Return baseUrl in case of error
+      }
     },
   },
   pages: {
     signIn: "/login",
-    error: "/error",
-  },
-  session: {
-    strategy: "jwt",
+    error: "/auth/error",
   },
   debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
+  logger: {
+    error(code, metadata) {
+      console.error(`[Auth] Error: ${code}`, metadata)
+    },
+    warn(code) {
+      console.warn(`[Auth] Warning: ${code}`)
+    },
+    debug(code, metadata) {
+      if (process.env.NODE_ENV === "development") {
+        console.debug(`[Auth] Debug: ${code}`, metadata)
+      }
+    },
+  },
 }

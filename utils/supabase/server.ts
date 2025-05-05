@@ -2,41 +2,63 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import type { Database } from "@/types/supabase"
 
-// Implementar corretamente a função createClient para SSR
+// Safely create a server client with error handling
 export async function createClient() {
   const cookieStore = cookies()
 
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value
-        },
-        set(name, value, options) {
-          cookieStore.set({ name, value, ...options })
-        },
-        remove(name, options) {
-          cookieStore.set({ name, value: "", ...options })
-        },
+  // Validate environment variables
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase environment variables")
+  }
+
+  // Validate URL format
+  try {
+    new URL(supabaseUrl)
+  } catch (e) {
+    throw new Error(`Invalid Supabase URL format: ${supabaseUrl}`)
+  }
+
+  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name) {
+        return cookieStore.get(name)?.value
+      },
+      set(name, value, options) {
+        cookieStore.set({ name, value, ...options })
+      },
+      remove(name, options) {
+        cookieStore.set({ name, value: "", ...options })
       },
     },
-  )
+  })
 }
 
-// Manter função legada para compatibilidade
+// Maintain legacy function for compatibility
 export function createServerSupabaseClient() {
   return createClient()
 }
 
-// Função para obter cliente com chave de serviço (para operações administrativas)
+// Function to get client with service key (for administrative operations)
 export async function getAdminClient() {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY não está definida")
+  // Validate environment variables
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Missing Supabase environment variables for admin client")
   }
 
-  return createServerClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  // Validate URL format
+  try {
+    new URL(supabaseUrl)
+  } catch (e) {
+    throw new Error(`Invalid Supabase URL format: ${supabaseUrl}`)
+  }
+
+  return createServerClient<Database>(supabaseUrl, serviceRoleKey, {
     cookies: {
       get: () => undefined,
       set: () => {},

@@ -1,44 +1,40 @@
 "use client"
 
 import type React from "react"
-
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useSession } from "next-auth/react"
-import { useEffect } from "react"
-import type { Database } from "@/types/supabase"
+import { useEffect, useState } from "react"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 
 export function SupabaseSessionProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
-  const supabase = createClientComponentClient<Database>()
+  const [error, setError] = useState<string | null>(null)
+
+  // We'll avoid creating the Supabase client if the URL is invalid
+  // This way the app can still function with just NextAuth
 
   useEffect(() => {
-    const syncSupabaseSession = async () => {
-      if (session?.user) {
-        // Verificar se o usuário está autenticado no Supabase
-        const {
-          data: { session: supabaseSession },
-        } = await supabase.auth.getSession()
+    // Check if Supabase URL is valid
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
-        // Se não estiver autenticado no Supabase mas estiver no NextAuth,
-        // podemos usar um endpoint personalizado para sincronizar as sessões
-        if (!supabaseSession && session) {
-          try {
-            await fetch("/api/auth/sync-session", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ session }),
-            })
-          } catch (error) {
-            console.error("Erro ao sincronizar sessão:", error)
-          }
-        }
-      }
+    // Only show error if we're not in development mode with placeholder values
+    if (supabaseUrl && (supabaseUrl === "your-supabase-url" || !supabaseUrl.startsWith("https://"))) {
+      setError(`Invalid Supabase URL: ${supabaseUrl}. Please set a valid URL in your environment variables.`)
     }
+  }, [])
 
-    syncSupabaseSession()
-  }, [session, supabase])
-
-  return <>{children}</>
+  // If there's an error, show it but still render children
+  // This allows the app to function with just NextAuth
+  return (
+    <>
+      {error && (
+        <div className="fixed bottom-4 right-4 z-50 max-w-md">
+          <Alert variant="destructive">
+            <AlertTitle>Supabase Configuration Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+      {children}
+    </>
+  )
 }

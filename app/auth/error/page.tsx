@@ -3,73 +3,47 @@
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { AlertCircle } from "lucide-react"
 
-export default function AuthErrorPage() {
+export default function AuthError() {
   const searchParams = useSearchParams()
-  const [error, setError] = useState<string | null>(null)
-  const [errorDescription, setErrorDescription] = useState<string>("")
+  const [errorMessage, setErrorMessage] = useState<string>("")
+  const error = searchParams?.get("error")
 
   useEffect(() => {
-    const errorParam = searchParams?.get("error")
-    setError(errorParam)
-
-    // Definir descrição do erro com base no código
-    if (errorParam === "Configuration") {
-      setErrorDescription("Há um problema com a configuração do servidor de autenticação.")
-    } else if (errorParam === "AccessDenied") {
-      setErrorDescription("Você não tem permissão para acessar este recurso.")
-    } else if (errorParam === "Verification") {
-      setErrorDescription("O link de verificação expirou ou já foi usado.")
-    } else if (errorParam === "OAuthSignin") {
-      setErrorDescription("Erro ao iniciar o fluxo de autenticação OAuth.")
-    } else if (errorParam === "OAuthCallback") {
-      setErrorDescription("Erro ao processar a resposta do provedor OAuth.")
-    } else if (errorParam === "OAuthCreateAccount") {
-      setErrorDescription("Não foi possível criar uma conta vinculada à sua conta OAuth.")
-    } else if (errorParam === "EmailCreateAccount") {
-      setErrorDescription("Não foi possível criar uma conta com este e-mail.")
-    } else if (errorParam === "Callback") {
-      setErrorDescription("Erro durante o processamento da autenticação.")
-    } else if (errorParam === "OAuthAccountNotLinked") {
-      setErrorDescription("Este e-mail já está associado a outra conta.")
-    } else if (errorParam === "EmailSignin") {
-      setErrorDescription("O e-mail não pôde ser enviado.")
-    } else if (errorParam === "CredentialsSignin") {
-      setErrorDescription("As credenciais fornecidas são inválidas.")
-    } else if (errorParam === "SessionRequired") {
-      setErrorDescription("Você precisa estar autenticado para acessar este recurso.")
-    } else {
-      setErrorDescription("Ocorreu um erro desconhecido durante a autenticação.")
+    // Map error codes to user-friendly messages
+    const errorMessages: Record<string, string> = {
+      Configuration: "There is a problem with the server configuration.",
+      AccessDenied: "You do not have permission to sign in.",
+      Verification: "The verification link may have been used or is invalid.",
+      Default: "An unexpected error occurred.",
+      CredentialsSignin: "The email or password you entered is incorrect.",
+      OAuthSignin: "Error in the OAuth sign-in process.",
+      OAuthCallback: "Error in the OAuth callback process.",
+      OAuthCreateAccount: "Could not create OAuth provider account.",
+      EmailCreateAccount: "Could not create email provider account.",
+      Callback: "Error in the callback handler.",
+      OAuthAccountNotLinked: "This email is already associated with another account.",
+      EmailSignin: "Error sending the email verification link.",
+      SessionRequired: "Please sign in to access this page.",
     }
-  }, [searchParams])
+
+    setErrorMessage(error && errorMessages[error] ? errorMessages[error] : errorMessages.Default)
+  }, [error])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 dark:bg-gray-900">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <div className="flex flex-col items-center space-y-2 text-center">
-          <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/20">
-            <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Erro de Autenticação</h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            {error ? `Erro: ${error}` : "Ocorreu um erro durante a autenticação"}
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-300">{errorDescription}</p>
-        </div>
-
-        <div className="mt-6 flex flex-col space-y-4">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-md">
+        <h1 className="mb-4 text-2xl font-bold text-red-600">Authentication Error</h1>
+        <p className="mb-6 text-gray-700">{errorMessage}</p>
+        <div className="flex flex-col space-y-4">
           <Link
-            href="/auth/login"
-            className="inline-flex w-full justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-700 dark:hover:bg-blue-600"
+            href="/login"
+            className="rounded bg-blue-600 px-4 py-2 text-center font-medium text-white hover:bg-blue-700"
           >
-            Voltar para o login
+            Return to Login
           </Link>
-          <Link
-            href="/"
-            className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-          >
-            Voltar para a página inicial
+          <Link href="/" className="text-center text-sm text-blue-600 hover:underline">
+            Go to Homepage
           </Link>
         </div>
       </div>
